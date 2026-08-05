@@ -1657,14 +1657,36 @@ ${i < 3 ? `<line x1="${x + 126}" y1="93" x2="${x + 148}" y2="93" stroke="${MUTE}
 
     /* ═══════════════ AI reflection check (Google Gemini) ═══════════════ */
     /* Get a FREE key at https://aistudio.google.com → "Get API key", then paste it below. */
-    const GEMINI_API_KEY = "AQ.Ab8RN6lqqP6LXhlLe2e2JpfyLUF4EU96Wp-tFwda2CE6d9J82A";
+    
 
     async function checkReflection(l) {
       const ans = document.getElementById('refIn').value.trim();
       const st = document.getElementById('checkStatus'), fb = document.getElementById('aiFb');
       fb.className = 'ai-fb'; fb.textContent = '';
       if (!ans) { st.textContent = 'Write your explanation first, then check.'; return; }
-      if (GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE"){
+      async function checkReflection(l){
+  const ans=document.getElementById('refIn').value.trim();
+  const st=document.getElementById('checkStatus'), fb=document.getElementById('aiFb');
+  fb.className='ai-fb'; fb.textContent='';
+  if(!ans){ st.textContent='Write your explanation first, then check.'; return; }
+  st.textContent='Thinking…';
+  try{
+    const r=await fetch('https://attention-atlas-api.dacharya.workers.dev/', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({answer:ans,lesson:{title:l.t,ref:l.ref}})
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    const txt=(data.feedback||'').trim();
+    if(!txt) throw new Error('empty');
+    st.textContent='';
+    fb.textContent=txt.replace(/^CORRECT:\s*/i,'✓ ').replace(/^NOT QUITE:\s*/i,'→ ');
+    fb.className='ai-fb show '+(/^CORRECT:/i.test(txt)?'ok':'redo');
+  }catch(e){
+    st.textContent='Could not reach the AI checker — check your connection and try again.';
+  }
+}
         st.textContent = 'AI check not configured yet (site owner: add a Gemini API key in the code).'; return;
       }
       st.textContent = 'Thinking…';
