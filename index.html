@@ -1,1344 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attention Atlas — How Transformers Work, Beautifully</title>
-  <meta name="description"
-    content="A free, open interactive atlas of how transformers and large language models work. 13 lessons, live instruments, zero prerequisites.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Spline+Sans:wght@400;500;600&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap"
-    rel="stylesheet">
-  <style>
-    :root {
-      --paper: #FAF7F0;
-      --paper-2: #F2EEE3;
-      --ink: #151B36;
-      --ink-soft: #3A4160;
-      --mute: #7C8199;
-      --blue: #2B3CF0;
-      --red: #E8442E;
-      --gold: #C98F0A;
-      --green: #1B8A5A;
-      --panel: #0E1230;
-      --panel-2: #161B44;
-      --panel-line: #2B3168;
-      --p-cyan: #7DE1FF;
-      --p-gold: #FFD166;
-      --p-pink: #FF9EC4;
-      --p-text: #EDF0FF;
-      --p-mute: #8B93C4;
-      --hair: #E2DCCB;
-      --rail: 300px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0
-    }
-
-    html {
-      scroll-behavior: smooth
-    }
-
-    body {
-      background: var(--paper);
-      color: var(--ink);
-      font-family: 'Spline Sans', system-ui, sans-serif;
-      line-height: 1.68;
-      font-size: 16.5px;
-      -webkit-font-smoothing: antialiased
-    }
-
-    ::selection {
-      background: var(--blue);
-      color: #fff
-    }
-
-    h1,
-    h2,
-    h3,
-    h4 {
-      font-family: 'Fraunces', serif;
-      font-weight: 600;
-      letter-spacing: -.01em;
-      line-height: 1.06
-    }
-
-    .mono {
-      font-family: 'IBM Plex Mono', monospace
-    }
-
-    a {
-      color: var(--blue);
-      text-decoration: none
-    }
-
-    button {
-      font-family: inherit
-    }
-
-    /* ============ HERO ============ */
-    .hero {
-      min-height: 92vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      position: relative;
-      padding: 70px 6vw 60px;
-      overflow: hidden;
-      background:
-        radial-gradient(900px 500px at 85% 0%, rgba(43, 60, 240, .05), transparent 60%),
-        radial-gradient(700px 460px at 5% 100%, rgba(232, 68, 46, .05), transparent 55%),
-        var(--paper)
-    }
-
-    .hero-kicker {
-      font-family: 'IBM Plex Mono';
-      font-size: 12.5px;
-      letter-spacing: .22em;
-      text-transform: uppercase;
-      color: var(--red);
-      margin-bottom: 26px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      opacity: 0;
-      animation: rise .8s .1s forwards
-    }
-
-    .hero-kicker::before {
-      content: "";
-      display: inline-block;
-      width: 34px;
-      height: 1.5px;
-      background: var(--red)
-    }
-
-    .hero-title-wrap {
-      position: relative;
-      max-width: 1080px
-    }
-
-    #arcs {
-      position: absolute;
-      inset: -70px -40px -50px -40px;
-      width: calc(100% + 80px);
-      height: calc(100% + 120px);
-      pointer-events: none;
-      z-index: 0
-    }
-
-    .hero h1 {
-      position: relative;
-      z-index: 1;
-      font-size: clamp(52px, 9.4vw, 138px);
-      font-weight: 560;
-      color: var(--ink)
-    }
-
-    .hero h1 .w {
-      display: inline-block;
-      opacity: 0;
-      transform: translateY(30px);
-      animation: rise .9s forwards
-    }
-
-    .hero h1 .it {
-      font-style: italic;
-      font-weight: 430;
-      color: var(--blue)
-    }
-
-    .hero h1 .w:nth-child(1) {
-      animation-delay: .15s
-    }
-
-    .hero h1 .w:nth-child(2) {
-      animation-delay: .3s
-    }
-
-    .hero h1 .w:nth-child(3) {
-      animation-delay: .45s
-    }
-
-    .hero h1 .w:nth-child(4) {
-      animation-delay: .58s
-    }
-
-    .hero h1 .w:nth-child(5) {
-      animation-delay: .7s
-    }
-
-    .hero-sub {
-      max-width: 620px;
-      margin-top: 30px;
-      font-size: 19px;
-      color: var(--ink-soft);
-      opacity: 0;
-      animation: rise .8s .95s forwards
-    }
-
-    .hero-sub em {
-      font-family: 'Fraunces';
-      font-style: italic;
-      color: var(--red)
-    }
-
-    @keyframes rise {
-      to {
-        opacity: 1;
-        transform: none
-      }
-    }
-
-    /* live tokenizer strip */
-    .tokenline {
-      margin-top: 44px;
-      opacity: 0;
-      animation: rise .8s 1.15s forwards;
-      max-width: 640px
-    }
-
-    .tokenline .tl-cap {
-      font-family: 'IBM Plex Mono';
-      font-size: 12px;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--mute);
-      margin-bottom: 10px
-    }
-
-    .tokenline input {
-      width: 100%;
-      border: none;
-      border-bottom: 2px solid var(--ink);
-      background: transparent;
-      font-family: 'Fraunces';
-      font-style: italic;
-      font-size: clamp(22px, 3.4vw, 34px);
-      color: var(--ink);
-      padding: 6px 2px 10px;
-      outline: none;
-      font-weight: 430
-    }
-
-    .tokenline input::placeholder {
-      color: #B9B3A2
-    }
-
-    .tokchips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 9px;
-      margin-top: 16px;
-      min-height: 44px
-    }
-
-    .tchip {
-      font-family: 'IBM Plex Mono';
-      font-size: 14px;
-      padding: 8px 13px 22px;
-      border-radius: 10px;
-      position: relative;
-      color: #fff;
-      animation: pop .35s cubic-bezier(.3, 1.6, .5, 1) both
-    }
-
-    .tchip small {
-      position: absolute;
-      left: 13px;
-      bottom: 5px;
-      font-size: 9.5px;
-      opacity: .75;
-      letter-spacing: .04em
-    }
-
-    @keyframes pop {
-      from {
-        opacity: 0;
-        transform: scale(.6) translateY(8px)
-      }
-
-      to {
-        opacity: 1;
-        transform: none
-      }
-    }
-
-    .hero-cta {
-      margin-top: 48px;
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      opacity: 0;
-      animation: rise .8s 1.3s forwards
-    }
-
-    .btn-main {
-      background: var(--ink);
-      color: var(--paper);
-      border: none;
-      border-radius: 999px;
-      padding: 17px 34px;
-      font-size: 15.5px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      transition: transform .2s, box-shadow .25s, background .2s
-    }
-
-    .btn-main:hover {
-      background: var(--blue);
-      transform: translateY(-3px);
-      box-shadow: 0 16px 34px -10px rgba(43, 60, 240, .45)
-    }
-
-    .btn-main .ar {
-      transition: transform .2s
-    }
-
-    .btn-main:hover .ar {
-      transform: translateX(4px)
-    }
-
-    .hero-meta {
-      font-family: 'IBM Plex Mono';
-      font-size: 12.5px;
-      color: var(--mute)
-    }
-
-    .hero-foot {
-      position: absolute;
-      bottom: 26px;
-      left: 6vw;
-      right: 6vw;
-      display: flex;
-      justify-content: space-between;
-      font-family: 'IBM Plex Mono';
-      font-size: 11.5px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--mute);
-      opacity: 0;
-      animation: rise 1s 1.5s forwards
-    }
-
-    /* ============ COURSE SHELL ============ */
-    .shell {
-      display: grid;
-      grid-template-columns: var(--rail) 1fr;
-      max-width: 1460px;
-      margin: 0 auto;
-      border-top: 1.5px solid var(--ink)
-    }
-
-    /* ---- the stack rail ---- */
-    .rail {
-      border-right: 1.5px solid var(--ink);
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-      padding: 34px 26px 40px;
-      background: var(--paper-2)
-    }
-
-    .rail::-webkit-scrollbar {
-      width: 0
-    }
-
-    .rail-brand {
-      font-family: 'Fraunces';
-      font-weight: 600;
-      font-size: 19px;
-      margin-bottom: 6px
-    }
-
-    .rail-brand .sq {
-      display: inline-block;
-      width: 11px;
-      height: 11px;
-      background: var(--red);
-      border-radius: 3px;
-      margin-right: 9px
-    }
-
-    .rail-note {
-      font-family: 'IBM Plex Mono';
-      font-size: 11px;
-      color: var(--mute);
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      margin-bottom: 24px
-    }
-
-    .prog-line {
-      display: flex;
-      justify-content: space-between;
-      font-family: 'IBM Plex Mono';
-      font-size: 11.5px;
-      color: var(--ink-soft);
-      margin-bottom: 8px
-    }
-
-    .prog-track {
-      height: 5px;
-      background: var(--hair);
-      border-radius: 99px;
-      overflow: hidden;
-      margin-bottom: 30px
-    }
-
-    .prog-fill {
-      height: 100%;
-      width: 0;
-      background: linear-gradient(90deg, var(--blue), var(--red));
-      transition: width .5s
-    }
-
-    /* stack */
-    .stack {
-      position: relative;
-      padding-left: 26px
-    }
-
-    .stack::before {
-      content: "";
-      position: absolute;
-      left: 8px;
-      top: 12px;
-      bottom: 12px;
-      width: 2px;
-      background: var(--ink);
-      opacity: .16
-    }
-
-    .orb {
-      position: absolute;
-      left: 2.5px;
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      background: var(--blue);
-      box-shadow: 0 0 0 4px rgba(43, 60, 240, .16), 0 0 18px rgba(43, 60, 240, .5);
-      transition: top .55s cubic-bezier(.5, 1.4, .4, 1);
-      z-index: 2
-    }
-
-    .stk {
-      display: block;
-      width: 100%;
-      text-align: left;
-      background: transparent;
-      border: 1.5px solid transparent;
-      border-radius: 12px;
-      padding: 11px 13px;
-      cursor: pointer;
-      margin-bottom: 6px;
-      transition: .18s;
-      position: relative
-    }
-
-    .stk:hover {
-      background: rgba(43, 60, 240, .05)
-    }
-
-    .stk.active {
-      background: #fff;
-      border-color: var(--ink);
-      box-shadow: 3px 3px 0 var(--ink)
-    }
-
-    .stk .n {
-      font-family: 'IBM Plex Mono';
-      font-size: 10.5px;
-      color: var(--red);
-      letter-spacing: .06em
-    }
-
-    .stk .t {
-      display: block;
-      font-family: 'Fraunces';
-      font-size: 15.5px;
-      font-weight: 560;
-      color: var(--ink);
-      line-height: 1.25
-    }
-
-    .stk .done-tick {
-      position: absolute;
-      right: 11px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--green);
-      font-size: 13px;
-      opacity: 0;
-      transition: .2s
-    }
-
-    .stk.done .done-tick {
-      opacity: 1
-    }
-
-    .stk.done .n {
-      color: var(--green)
-    }
-
-    /* ---- lesson canvas ---- */
-    .canvas {
-      padding: 66px clamp(28px, 5.5vw, 84px) 110px;
-      min-height: 100vh;
-      background: var(--paper)
-    }
-
-    .les-kick {
-      font-family: 'IBM Plex Mono';
-      font-size: 12px;
-      letter-spacing: .2em;
-      text-transform: uppercase;
-      color: var(--red);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px
-    }
-
-    .les-kick::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: var(--hair)
-    }
-
-    .les-title {
-      font-size: clamp(38px, 5.4vw, 64px);
-      margin-bottom: 24px;
-      font-weight: 560
-    }
-
-    .les-title em {
-      font-style: italic;
-      color: var(--blue);
-      font-weight: 430
-    }
-
-    .idea {
-      font-family: 'Fraunces';
-      font-size: clamp(19px, 2.3vw, 24px);
-      font-weight: 430;
-      line-height: 1.5;
-      color: var(--ink-soft);
-      border-left: 3px solid var(--red);
-      padding: 6px 0 6px 26px;
-      margin-bottom: 52px;
-      max-width: 760px
-    }
-
-    .idea b {
-      color: var(--ink);
-      font-weight: 640
-    }
-
-    .step {
-      margin: 46px 0;
-      max-width: 740px
-    }
-
-    .step-tag {
-      font-family: 'IBM Plex Mono';
-      font-size: 11.5px;
-      letter-spacing: .16em;
-      color: var(--blue);
-      text-transform: uppercase;
-      margin-bottom: 10px
-    }
-
-    .step h3 {
-      font-size: 27px;
-      margin-bottom: 14px
-    }
-
-    .step p {
-      color: var(--ink-soft);
-      margin-bottom: 14px
-    }
-
-    .step p b {
-      color: var(--ink)
-    }
-
-    .key {
-      color: var(--red);
-      font-weight: 600
-    }
-
-    .eq {
-      font-family: 'IBM Plex Mono';
-      font-size: 15px;
-      background: #fff;
-      border: 1.5px solid var(--ink);
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin: 18px 0;
-      box-shadow: 4px 4px 0 rgba(21, 27, 54, .09);
-      overflow-x: auto
-    }
-
-    .eq .hl {
-      color: var(--blue);
-      font-weight: 500
-    }
-
-    .note {
-      background: #fff;
-      border: 1.5px solid var(--hair);
-      border-left: 4px solid var(--gold);
-      border-radius: 12px;
-      padding: 18px 22px;
-      margin: 22px 0;
-      font-size: 15px;
-      color: var(--ink-soft)
-    }
-
-    .note b {
-      color: var(--gold);
-      font-weight: 600
-    }
-
-    /* figures */
-    .fig {
-      background: #fff;
-      border: 1.5px solid var(--ink);
-      border-radius: 16px;
-      padding: 26px;
-      margin: 30px 0;
-      box-shadow: 6px 6px 0 rgba(21, 27, 54, .08);
-      max-width: 780px
-    }
-
-    .fig svg {
-      width: 100%;
-      height: auto;
-      display: block
-    }
-
-    .fig .cap {
-      font-family: 'IBM Plex Mono';
-      font-size: 12px;
-      color: var(--mute);
-      margin-top: 14px;
-      padding-top: 12px;
-      border-top: 1px solid var(--hair)
-    }
-
-    .fig .cap b {
-      color: var(--red);
-      font-weight: 500
-    }
-
-    /* ---- INSTRUMENT PANELS (dark) ---- */
-    .inst {
-      background: var(--panel);
-      border-radius: 20px;
-      padding: 30px;
-      margin: 34px 0;
-      max-width: 780px;
-      color: var(--p-text);
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 24px 60px -18px rgba(14, 18, 48, .55)
-    }
-
-    .inst::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(500px 200px at 80% 0%, rgba(125, 225, 255, .09), transparent 60%);
-      pointer-events: none
-    }
-
-    .inst-head {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 6px;
-      position: relative
-    }
-
-    .inst-lamp {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--p-gold);
-      box-shadow: 0 0 10px var(--p-gold);
-      animation: lamp 2.4s infinite
-    }
-
-    @keyframes lamp {
-
-      0%,
-      100% {
-        opacity: 1
-      }
-
-      50% {
-        opacity: .35
-      }
-    }
-
-    .inst-head h4 {
-      font-family: 'IBM Plex Mono';
-      font-weight: 500;
-      font-size: 13px;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      color: var(--p-gold)
-    }
-
-    .inst-sub {
-      font-size: 13.5px;
-      color: var(--p-mute);
-      margin-bottom: 22px;
-      position: relative
-    }
-
-    .inst label {
-      font-family: 'IBM Plex Mono';
-      font-size: 12px;
-      color: var(--p-mute)
-    }
-
-    .srow {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 16px;
-      position: relative
-    }
-
-    .srow label {
-      min-width: 110px
-    }
-
-    input[type=range] {
-      -webkit-appearance: none;
-      appearance: none;
-      height: 5px;
-      border-radius: 99px;
-      flex: 1;
-      background: linear-gradient(90deg, var(--p-cyan), var(--p-pink));
-      outline: none
-    }
-
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #fff;
-      cursor: pointer;
-      border: 3px solid var(--p-cyan);
-      box-shadow: 0 0 14px rgba(125, 225, 255, .8)
-    }
-
-    input[type=range]::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #fff;
-      border: 3px solid var(--p-cyan);
-      cursor: pointer
-    }
-
-    .sval {
-      font-family: 'IBM Plex Mono';
-      font-size: 14px;
-      color: var(--p-cyan);
-      min-width: 54px;
-      text-align: right
-    }
-
-    .ibtn {
-      background: var(--panel-2);
-      border: 1px solid var(--panel-line);
-      color: var(--p-text);
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-family: 'IBM Plex Mono';
-      font-size: 12.5px;
-      cursor: pointer;
-      transition: .18s
-    }
-
-    .ibtn:hover {
-      border-color: var(--p-cyan);
-      color: var(--p-cyan);
-      box-shadow: 0 0 16px rgba(125, 225, 255, .25)
-    }
-
-    .readout {
-      display: flex;
-      gap: 34px;
-      flex-wrap: wrap;
-      margin-top: 18px;
-      position: relative
-    }
-
-    .readout .r span {
-      display: block;
-      font-family: 'IBM Plex Mono';
-      font-size: 10.5px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--p-mute);
-      margin-bottom: 3px
-    }
-
-    .readout .r b {
-      font-family: 'IBM Plex Mono';
-      font-weight: 500;
-      font-size: 24px;
-      color: var(--p-cyan)
-    }
-
-    /* bars in instruments */
-    .ibars {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      height: 150px;
-      margin-top: 10px;
-      position: relative
-    }
-
-    .ibw {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      height: 100%;
-      justify-content: flex-end
-    }
-
-    .ib {
-      width: 100%;
-      border-radius: 8px 8px 3px 3px;
-      background: linear-gradient(180deg, var(--p-cyan), #3D7BFF);
-      transition: height .4s cubic-bezier(.3, 1.4, .4, 1);
-      min-height: 3px;
-      box-shadow: 0 0 18px rgba(125, 225, 255, .28)
-    }
-
-    .ibl {
-      font-family: 'IBM Plex Mono';
-      font-size: 11px;
-      color: var(--p-mute)
-    }
-
-    .ibv {
-      font-family: 'IBM Plex Mono';
-      font-size: 11px;
-      color: var(--p-text)
-    }
-
-    /* tokens in instruments */
-    .itoks {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-      position: relative
-    }
-
-    .itok {
-      font-family: 'IBM Plex Mono';
-      font-size: 13px;
-      padding: 8px 13px;
-      border-radius: 9px;
-      cursor: pointer;
-      background: var(--panel-2);
-      border: 1px solid var(--panel-line);
-      color: var(--p-text);
-      transition: .18s
-    }
-
-    .itok.sel {
-      border-color: var(--p-gold);
-      color: var(--p-gold);
-      box-shadow: 0 0 16px rgba(255, 209, 102, .35)
-    }
-
-    .aline {
-      display: flex;
-      align-items: center;
-      gap: 13px;
-      margin-bottom: 9px;
-      position: relative
-    }
-
-    .aline .w {
-      font-family: 'IBM Plex Mono';
-      font-size: 12px;
-      min-width: 92px;
-      color: var(--p-mute)
-    }
-
-    .abar {
-      height: 20px;
-      border-radius: 6px;
-      background: linear-gradient(90deg, var(--p-cyan), var(--p-pink));
-      transition: width .45s ease;
-      min-width: 2px;
-      box-shadow: 0 0 14px rgba(255, 158, 196, .25)
-    }
-
-    .aline .p {
-      font-family: 'IBM Plex Mono';
-      font-size: 12px;
-      min-width: 42px;
-      color: var(--p-text)
-    }
-
-    .itxt {
-      width: 100%;
-      background: var(--panel-2);
-      border: 1px solid var(--panel-line);
-      border-radius: 10px;
-      padding: 12px 15px;
-      color: var(--p-text);
-      font-family: 'IBM Plex Mono';
-      font-size: 14px;
-      outline: none
-    }
-
-    .itxt:focus {
-      border-color: var(--p-cyan)
-    }
-
-    /* ---- quiz ---- */
-    .quiz {
-      border: 1.5px solid var(--ink);
-      border-radius: 18px;
-      padding: 32px;
-      margin: 52px 0;
-      max-width: 780px;
-      background: #fff;
-      box-shadow: 6px 6px 0 rgba(21, 27, 54, .08)
-    }
-
-    .quiz-kick {
-      font-family: 'IBM Plex Mono';
-      font-size: 12px;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      color: var(--red);
-      margin-bottom: 22px
-    }
-
-    .q {
-      margin-bottom: 28px
-    }
-
-    .q:last-child {
-      margin-bottom: 0
-    }
-
-    .q .qt {
-      font-family: 'Fraunces';
-      font-size: 18.5px;
-      font-weight: 560;
-      margin-bottom: 13px
-    }
-
-    .opt {
-      display: block;
-      width: 100%;
-      text-align: left;
-      padding: 13px 17px;
-      border-radius: 11px;
-      border: 1.5px solid var(--hair);
-      background: var(--paper);
-      color: var(--ink);
-      font-size: 14.5px;
-      cursor: pointer;
-      margin-bottom: 9px;
-      transition: .16s;
-      font-family: 'Spline Sans'
-    }
-
-    .opt:hover:not(:disabled) {
-      border-color: var(--blue);
-      transform: translateX(4px)
-    }
-
-    .opt.correct {
-      border-color: var(--green);
-      background: #EAF6F0;
-      color: var(--green);
-      font-weight: 600
-    }
-
-    .opt.wrong {
-      border-color: var(--red);
-      background: #FCEEEB;
-      color: var(--red)
-    }
-
-    .opt:disabled {
-      cursor: default
-    }
-
-    .explain {
-      font-size: 14px;
-      color: var(--ink-soft);
-      padding: 13px 17px;
-      border-radius: 10px;
-      background: var(--paper-2);
-      border-left: 3px solid var(--blue);
-      margin-top: 8px;
-      display: none
-    }
-
-    .explain.show {
-      display: block;
-      animation: rise .4s
-    }
-
-    /* reflect */
-    .reflect {
-      margin: 40px 0;
-      max-width: 780px
-    }
-
-    .reflect h4 {
-      font-family: 'Fraunces';
-      font-size: 21px;
-      margin-bottom: 6px
-    }
-
-    .reflect .hint {
-      font-size: 14px;
-      color: var(--mute);
-      margin-bottom: 12px;
-      font-style: italic;
-      font-family: 'Fraunces'
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 96px;
-      background: #fff;
-      border: 1.5px solid var(--hair);
-      border-radius: 14px;
-      padding: 16px;
-      color: var(--ink);
-      font-family: 'Spline Sans';
-      font-size: 15px;
-      resize: vertical;
-      outline: none;
-      transition: .2s
-    }
-
-    textarea:focus {
-      border-color: var(--blue);
-      box-shadow: 4px 4px 0 rgba(43, 60, 240, .12)
-    }
-
-    /* AI reflection check */
-    .check-btn {
-      background: #fff;
-      border: 1.5px solid var(--blue);
-      color: var(--blue);
-      border-radius: 999px;
-      padding: 11px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: .2s;
-      font-family: 'Spline Sans'
-    }
-
-    .check-btn:hover {
-      background: var(--blue);
-      color: #fff;
-      transform: translateY(-2px)
-    }
-
-    .check-status {
-      font-size: 13px;
-      color: var(--mute);
-      font-style: italic;
-      font-family: 'Fraunces'
-    }
-
-    .ai-fb {
-      display: none;
-      margin-top: 12px;
-      padding: 15px 18px;
-      border-radius: 12px;
-      font-size: 14.5px;
-      line-height: 1.6
-    }
-
-    .ai-fb.show {
-      display: block;
-      animation: rise .4s
-    }
-
-    .ai-fb.ok {
-      background: #EAF6F0;
-      border: 1.5px solid var(--green);
-      color: var(--green)
-    }
-
-    .ai-fb.redo {
-      background: #FDF3E7;
-      border: 1.5px solid var(--gold);
-      color: #8A6206
-    }
-
-    /* complete + nav */
-    .done-btn {
-      margin-top: 8px;
-      background: var(--ink);
-      color: var(--paper);
-      border: none;
-      border-radius: 999px;
-      padding: 16px 30px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: .2s
-    }
-
-    .done-btn:hover {
-      background: var(--green);
-      transform: translateY(-2px)
-    }
-
-    .done-btn.is-done {
-      background: #EAF6F0;
-      color: var(--green);
-      border: 1.5px solid var(--green)
-    }
-
-    .lnav {
-      display: flex;
-      gap: 16px;
-      margin-top: 60px;
-      padding-top: 34px;
-      border-top: 1.5px solid var(--ink);
-      max-width: 780px
-    }
-
-    .lnav button {
-      flex: 1;
-      background: #fff;
-      border: 1.5px solid var(--ink);
-      border-radius: 14px;
-      padding: 18px 22px;
-      cursor: pointer;
-      text-align: left;
-      transition: .2s;
-      box-shadow: 4px 4px 0 rgba(21, 27, 54, .1)
-    }
-
-    .lnav button:hover:not(:disabled) {
-      transform: translate(-2px, -2px);
-      box-shadow: 7px 7px 0 rgba(21, 27, 54, .14)
-    }
-
-    .lnav button:disabled {
-      opacity: .35;
-      cursor: default;
-      box-shadow: none
-    }
-
-    .lnav .dir {
-      font-family: 'IBM Plex Mono';
-      font-size: 10.5px;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      color: var(--red);
-      display: block;
-      margin-bottom: 5px
-    }
-
-    .lnav .lt {
-      font-family: 'Fraunces';
-      font-size: 17px;
-      font-weight: 560;
-      color: var(--ink)
-    }
-
-    .lnav .nx {
-      text-align: right;
-      background: var(--paper-2)
-    }
-
-    /* reveal */
-    .rv {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity .7s ease, transform .7s ease
-    }
-
-    .rv.in {
-      opacity: 1;
-      transform: none
-    }
-
-    /* footer */
-    .site-foot {
-      border-top: 1.5px solid var(--ink);
-      padding: 44px 6vw;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 18px;
-      font-family: 'IBM Plex Mono';
-      font-size: 12px;
-      color: var(--mute);
-      background: var(--paper-2)
-    }
-
-    /* mobile */
-    .mtoggle {
-      display: none
-    }
-
-    @media(max-width:920px) {
-      .shell {
-        grid-template-columns: 1fr
-      }
-
-      .rail {
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: min(320px, 86vw);
-        z-index: 80;
-        transform: translateX(-102%);
-        transition: transform .3s;
-        border-right: 1.5px solid var(--ink);
-        box-shadow: 20px 0 60px rgba(21, 27, 54, .2)
-      }
-
-      .rail.open {
-        transform: none
-      }
-
-      .mtoggle {
-        display: grid;
-        place-items: center;
-        position: fixed;
-        bottom: 22px;
-        right: 22px;
-        z-index: 85;
-        width: 58px;
-        height: 58px;
-        border-radius: 50%;
-        background: var(--ink);
-        color: var(--paper);
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-        box-shadow: 0 12px 30px rgba(21, 27, 54, .35)
-      }
-
-      .canvas {
-        padding: 54px 22px 90px
-      }
-
-      .hero {
-        padding: 60px 26px 50px
-      }
-    }
-
-    @media(prefers-reduced-motion:reduce) {
-      * {
-        animation: none !important;
-        transition: none !important
-      }
-
-      .rv,
-      .hero h1 .w,
-      .hero-sub,
-      .hero-cta,
-      .hero-kicker,
-      .tokenline,
-      .hero-foot {
-        opacity: 1;
-        transform: none
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attention Atlas — How Transformers Work, Beautifully</title>
+<meta name="description" content="A free, open interactive atlas of how transformers and large language models work. 13 lessons, live instruments, zero prerequisites.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Spline+Sans:wght@400;500;600&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAF7F0; --paper-2:#F2EEE3; --ink:#151B36; --ink-soft:#3A4160; --mute:#7C8199;
+  --blue:#2B3CF0; --red:#E8442E; --gold:#C98F0A; --green:#1B8A5A;
+  --panel:#0E1230; --panel-2:#161B44; --panel-line:#2B3168;
+  --p-cyan:#7DE1FF; --p-gold:#FFD166; --p-pink:#FF9EC4; --p-text:#EDF0FF; --p-mute:#8B93C4;
+  --hair:#E2DCCB;
+  --rail:300px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:'Spline Sans',system-ui,sans-serif;
+  line-height:1.68;font-size:16.5px;-webkit-font-smoothing:antialiased}
+::selection{background:var(--blue);color:#fff}
+h1,h2,h3,h4{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-.01em;line-height:1.06}
+.mono{font-family:'IBM Plex Mono',monospace}
+a{color:var(--blue);text-decoration:none}
+button{font-family:inherit}
+
+/* ============ HERO ============ */
+.hero{min-height:92vh;display:flex;flex-direction:column;justify-content:center;position:relative;
+  padding:70px 6vw 60px;overflow:hidden;
+  background:
+   radial-gradient(900px 500px at 85% 0%,rgba(43,60,240,.05),transparent 60%),
+   radial-gradient(700px 460px at 5% 100%,rgba(232,68,46,.05),transparent 55%),
+   var(--paper)}
+.hero-kicker{font-family:'IBM Plex Mono';font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--red);margin-bottom:26px;display:flex;align-items:center;gap:14px;opacity:0;animation:rise .8s .1s forwards}
+.hero-kicker::before{content:"";display:inline-block;width:34px;height:1.5px;background:var(--red)}
+.hero-title-wrap{position:relative;max-width:1080px}
+#arcs{position:absolute;inset:-70px -40px -50px -40px;width:calc(100% + 80px);height:calc(100% + 120px);
+  pointer-events:none;z-index:0}
+.hero h1{position:relative;z-index:1;font-size:clamp(52px,9.4vw,138px);font-weight:560;color:var(--ink)}
+.hero h1 .w{display:inline-block;opacity:0;transform:translateY(30px);animation:rise .9s forwards}
+.hero h1 .it{font-style:italic;font-weight:430;color:var(--blue)}
+.hero h1 .w:nth-child(1){animation-delay:.15s}.hero h1 .w:nth-child(2){animation-delay:.3s}
+.hero h1 .w:nth-child(3){animation-delay:.45s}.hero h1 .w:nth-child(4){animation-delay:.58s}
+.hero h1 .w:nth-child(5){animation-delay:.7s}
+.hero-sub{max-width:620px;margin-top:30px;font-size:19px;color:var(--ink-soft);
+  opacity:0;animation:rise .8s .95s forwards}
+.hero-sub em{font-family:'Fraunces';font-style:italic;color:var(--red)}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* live tokenizer strip */
+.tokenline{margin-top:44px;opacity:0;animation:rise .8s 1.15s forwards;max-width:640px}
+.tokenline .tl-cap{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--mute);margin-bottom:10px}
+.tokenline input{width:100%;border:none;border-bottom:2px solid var(--ink);background:transparent;
+  font-family:'Fraunces';font-style:italic;font-size:clamp(22px,3.4vw,34px);color:var(--ink);
+  padding:6px 2px 10px;outline:none;font-weight:430}
+.tokenline input::placeholder{color:#B9B3A2}
+.tokchips{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px;min-height:44px}
+.tchip{font-family:'IBM Plex Mono';font-size:14px;padding:8px 13px 22px;border-radius:10px;position:relative;
+  color:#fff;animation:pop .35s cubic-bezier(.3,1.6,.5,1) both}
+.tchip small{position:absolute;left:13px;bottom:5px;font-size:9.5px;opacity:.75;letter-spacing:.04em}
+@keyframes pop{from{opacity:0;transform:scale(.6) translateY(8px)}to{opacity:1;transform:none}}
+.hero-cta{margin-top:48px;display:flex;gap:16px;align-items:center;opacity:0;animation:rise .8s 1.3s forwards}
+.btn-main{background:var(--ink);color:var(--paper);border:none;border-radius:999px;padding:17px 34px;
+  font-size:15.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:12px;
+  transition:transform .2s,box-shadow .25s,background .2s}
+.btn-main:hover{background:var(--blue);transform:translateY(-3px);box-shadow:0 16px 34px -10px rgba(43,60,240,.45)}
+.btn-main .ar{transition:transform .2s}.btn-main:hover .ar{transform:translateX(4px)}
+.hero-meta{font-family:'IBM Plex Mono';font-size:12.5px;color:var(--mute)}
+.hero-foot{position:absolute;bottom:26px;left:6vw;right:6vw;display:flex;justify-content:space-between;
+  font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);
+  opacity:0;animation:rise 1s 1.5s forwards}
+
+/* ============ COURSE SHELL ============ */
+.shell{display:grid;grid-template-columns:var(--rail) 1fr;max-width:1460px;margin:0 auto;
+  border-top:1.5px solid var(--ink)}
+/* ---- the stack rail ---- */
+.rail{border-right:1.5px solid var(--ink);position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding:34px 26px 40px;background:var(--paper-2)}
+.rail::-webkit-scrollbar{width:0}
+.rail-brand{font-family:'Fraunces';font-weight:600;font-size:19px;margin-bottom:6px}
+.rail-brand .sq{display:inline-block;width:11px;height:11px;background:var(--red);border-radius:3px;margin-right:9px}
+.rail-note{font-family:'IBM Plex Mono';font-size:11px;color:var(--mute);letter-spacing:.1em;
+  text-transform:uppercase;margin-bottom:24px}
+.prog-line{display:flex;justify-content:space-between;font-family:'IBM Plex Mono';font-size:11.5px;
+  color:var(--ink-soft);margin-bottom:8px}
+.prog-track{height:5px;background:var(--hair);border-radius:99px;overflow:hidden;margin-bottom:30px}
+.prog-fill{height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--red));transition:width .5s}
+/* stack */
+.stack{position:relative;padding-left:26px}
+.stack::before{content:"";position:absolute;left:8px;top:12px;bottom:12px;width:2px;background:var(--ink);opacity:.16}
+.orb{position:absolute;left:2.5px;width:13px;height:13px;border-radius:50%;background:var(--blue);
+  box-shadow:0 0 0 4px rgba(43,60,240,.16),0 0 18px rgba(43,60,240,.5);
+  transition:top .55s cubic-bezier(.5,1.4,.4,1);z-index:2}
+.stk{display:block;width:100%;text-align:left;background:transparent;border:1.5px solid transparent;
+  border-radius:12px;padding:11px 13px;cursor:pointer;margin-bottom:6px;transition:.18s;position:relative}
+.stk:hover{background:rgba(43,60,240,.05)}
+.stk.active{background:#fff;border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.stk .n{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--red);letter-spacing:.06em}
+.stk .t{display:block;font-family:'Fraunces';font-size:15.5px;font-weight:560;color:var(--ink);line-height:1.25}
+.stk .done-tick{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--green);
+  font-size:13px;opacity:0;transition:.2s}
+.stk.done .done-tick{opacity:1}
+.stk.done .n{color:var(--green)}
+
+/* ---- lesson canvas ---- */
+.canvas{padding:66px clamp(28px,5.5vw,84px) 110px;min-height:100vh;background:var(--paper)}
+.les-kick{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--red);margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.les-kick::after{content:"";flex:1;height:1px;background:var(--hair)}
+.les-title{font-size:clamp(38px,5.4vw,64px);margin-bottom:24px;font-weight:560}
+.les-title em{font-style:italic;color:var(--blue);font-weight:430}
+.idea{font-family:'Fraunces';font-size:clamp(19px,2.3vw,24px);font-weight:430;line-height:1.5;
+  color:var(--ink-soft);border-left:3px solid var(--red);padding:6px 0 6px 26px;margin-bottom:52px;max-width:760px}
+.idea b{color:var(--ink);font-weight:640}
+.step{margin:46px 0;max-width:740px}
+.step-tag{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.16em;color:var(--blue);
+  text-transform:uppercase;margin-bottom:10px}
+.step h3{font-size:27px;margin-bottom:14px}
+.step p{color:var(--ink-soft);margin-bottom:14px}
+.step p b{color:var(--ink)}
+.key{color:var(--red);font-weight:600}
+.eq{font-family:'IBM Plex Mono';font-size:15px;background:#fff;border:1.5px solid var(--ink);
+  border-radius:12px;padding:16px 20px;margin:18px 0;box-shadow:4px 4px 0 rgba(21,27,54,.09);overflow-x:auto}
+.eq .hl{color:var(--blue);font-weight:500}
+.note{background:#fff;border:1.5px solid var(--hair);border-left:4px solid var(--gold);border-radius:12px;
+  padding:18px 22px;margin:22px 0;font-size:15px;color:var(--ink-soft)}
+.note b{color:var(--gold);font-weight:600}
+/* figures */
+.fig{background:#fff;border:1.5px solid var(--ink);border-radius:16px;padding:26px;margin:30px 0;
+  box-shadow:6px 6px 0 rgba(21,27,54,.08);max-width:780px}
+.fig svg{width:100%;height:auto;display:block}
+.fig .cap{font-family:'IBM Plex Mono';font-size:12px;color:var(--mute);margin-top:14px;
+  padding-top:12px;border-top:1px solid var(--hair)}
+.fig .cap b{color:var(--red);font-weight:500}
+
+/* ---- INSTRUMENT PANELS (dark) ---- */
+.inst{background:var(--panel);border-radius:20px;padding:30px;margin:34px 0;max-width:780px;
+  color:var(--p-text);position:relative;overflow:hidden;
+  box-shadow:0 24px 60px -18px rgba(14,18,48,.55)}
+.inst::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(500px 200px at 80% 0%,rgba(125,225,255,.09),transparent 60%);pointer-events:none}
+.inst-head{display:flex;align-items:center;gap:12px;margin-bottom:6px;position:relative}
+.inst-lamp{width:9px;height:9px;border-radius:50%;background:var(--p-gold);
+  box-shadow:0 0 10px var(--p-gold);animation:lamp 2.4s infinite}
+@keyframes lamp{0%,100%{opacity:1}50%{opacity:.35}}
+.inst-head h4{font-family:'IBM Plex Mono';font-weight:500;font-size:13px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--p-gold)}
+.inst-sub{font-size:13.5px;color:var(--p-mute);margin-bottom:22px;position:relative}
+.inst label{font-family:'IBM Plex Mono';font-size:12px;color:var(--p-mute)}
+.srow{display:flex;align-items:center;gap:16px;margin-bottom:16px;position:relative}
+.srow label{min-width:110px}
+input[type=range]{-webkit-appearance:none;appearance:none;height:5px;border-radius:99px;flex:1;
+  background:linear-gradient(90deg,var(--p-cyan),var(--p-pink));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:#fff;cursor:pointer;border:3px solid var(--p-cyan);box-shadow:0 0 14px rgba(125,225,255,.8)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--p-cyan);cursor:pointer}
+.sval{font-family:'IBM Plex Mono';font-size:14px;color:var(--p-cyan);min-width:54px;text-align:right}
+.ibtn{background:var(--panel-2);border:1px solid var(--panel-line);color:var(--p-text);border-radius:10px;
+  padding:10px 18px;font-family:'IBM Plex Mono';font-size:12.5px;cursor:pointer;transition:.18s}
+.ibtn:hover{border-color:var(--p-cyan);color:var(--p-cyan);box-shadow:0 0 16px rgba(125,225,255,.25)}
+.readout{display:flex;gap:34px;flex-wrap:wrap;margin-top:18px;position:relative}
+.readout .r span{display:block;font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--p-mute);margin-bottom:3px}
+.readout .r b{font-family:'IBM Plex Mono';font-weight:500;font-size:24px;color:var(--p-cyan)}
+/* bars in instruments */
+.ibars{display:flex;align-items:flex-end;gap:12px;height:150px;margin-top:10px;position:relative}
+.ibw{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.ib{width:100%;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,var(--p-cyan),#3D7BFF);
+  transition:height .4s cubic-bezier(.3,1.4,.4,1);min-height:3px;box-shadow:0 0 18px rgba(125,225,255,.28)}
+.ibl{font-family:'IBM Plex Mono';font-size:11px;color:var(--p-mute)}
+.ibv{font-family:'IBM Plex Mono';font-size:11px;color:var(--p-text)}
+/* tokens in instruments */
+.itoks{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;position:relative}
+.itok{font-family:'IBM Plex Mono';font-size:13px;padding:8px 13px;border-radius:9px;cursor:pointer;
+  background:var(--panel-2);border:1px solid var(--panel-line);color:var(--p-text);transition:.18s}
+.itok.sel{border-color:var(--p-gold);color:var(--p-gold);box-shadow:0 0 16px rgba(255,209,102,.35)}
+.aline{display:flex;align-items:center;gap:13px;margin-bottom:9px;position:relative}
+.aline .w{font-family:'IBM Plex Mono';font-size:12px;min-width:92px;color:var(--p-mute)}
+.abar{height:20px;border-radius:6px;background:linear-gradient(90deg,var(--p-cyan),var(--p-pink));
+  transition:width .45s ease;min-width:2px;box-shadow:0 0 14px rgba(255,158,196,.25)}
+.aline .p{font-family:'IBM Plex Mono';font-size:12px;min-width:42px;color:var(--p-text)}
+.itxt{width:100%;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;
+  padding:12px 15px;color:var(--p-text);font-family:'IBM Plex Mono';font-size:14px;outline:none}
+.itxt:focus{border-color:var(--p-cyan)}
+
+/* ---- quiz ---- */
+.quiz{border:1.5px solid var(--ink);border-radius:18px;padding:32px;margin:52px 0;max-width:780px;
+  background:#fff;box-shadow:6px 6px 0 rgba(21,27,54,.08)}
+.quiz-kick{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--red);margin-bottom:22px}
+.q{margin-bottom:28px}.q:last-child{margin-bottom:0}
+.q .qt{font-family:'Fraunces';font-size:18.5px;font-weight:560;margin-bottom:13px}
+.opt{display:block;width:100%;text-align:left;padding:13px 17px;border-radius:11px;
+  border:1.5px solid var(--hair);background:var(--paper);color:var(--ink);font-size:14.5px;cursor:pointer;
+  margin-bottom:9px;transition:.16s;font-family:'Spline Sans'}
+.opt:hover:not(:disabled){border-color:var(--blue);transform:translateX(4px)}
+.opt.correct{border-color:var(--green);background:#EAF6F0;color:var(--green);font-weight:600}
+.opt.wrong{border-color:var(--red);background:#FCEEEB;color:var(--red)}
+.opt:disabled{cursor:default}
+.explain{font-size:14px;color:var(--ink-soft);padding:13px 17px;border-radius:10px;background:var(--paper-2);
+  border-left:3px solid var(--blue);margin-top:8px;display:none}
+.explain.show{display:block;animation:rise .4s}
+/* reflect */
+.reflect{margin:40px 0;max-width:780px}
+.reflect h4{font-family:'Fraunces';font-size:21px;margin-bottom:6px}
+.reflect .hint{font-size:14px;color:var(--mute);margin-bottom:12px;font-style:italic;font-family:'Fraunces'}
+textarea{width:100%;min-height:96px;background:#fff;border:1.5px solid var(--hair);border-radius:14px;
+  padding:16px;color:var(--ink);font-family:'Spline Sans';font-size:15px;resize:vertical;outline:none;transition:.2s}
+textarea:focus{border-color:var(--blue);box-shadow:4px 4px 0 rgba(43,60,240,.12)}
+/* AI reflection check */
+.check-btn{background:#fff;border:1.5px solid var(--blue);color:var(--blue);border-radius:999px;
+  padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;font-family:'Spline Sans'}
+.check-btn:hover{background:var(--blue);color:#fff;transform:translateY(-2px)}
+.check-status{font-size:13px;color:var(--mute);font-style:italic;font-family:'Fraunces'}
+.ai-fb{display:none;margin-top:12px;padding:15px 18px;border-radius:12px;font-size:14.5px;line-height:1.6}
+.ai-fb.show{display:block;animation:rise .4s}
+.ai-fb.ok{background:#EAF6F0;border:1.5px solid var(--green);color:var(--green)}
+.ai-fb.redo{background:#FDF3E7;border:1.5px solid var(--gold);color:#8A6206}
+/* complete + nav */
+.done-btn{margin-top:8px;background:var(--ink);color:var(--paper);border:none;border-radius:999px;
+  padding:16px 30px;font-size:15px;font-weight:600;cursor:pointer;transition:.2s}
+.done-btn:hover{background:var(--green);transform:translateY(-2px)}
+.done-btn.is-done{background:#EAF6F0;color:var(--green);border:1.5px solid var(--green)}
+.lnav{display:flex;gap:16px;margin-top:60px;padding-top:34px;border-top:1.5px solid var(--ink);max-width:780px}
+.lnav button{flex:1;background:#fff;border:1.5px solid var(--ink);border-radius:14px;padding:18px 22px;
+  cursor:pointer;text-align:left;transition:.2s;box-shadow:4px 4px 0 rgba(21,27,54,.1)}
+.lnav button:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:7px 7px 0 rgba(21,27,54,.14)}
+.lnav button:disabled{opacity:.35;cursor:default;box-shadow:none}
+.lnav .dir{font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--red);display:block;margin-bottom:5px}
+.lnav .lt{font-family:'Fraunces';font-size:17px;font-weight:560;color:var(--ink)}
+.lnav .nx{text-align:right;background:var(--paper-2)}
+/* reveal */
+.rv{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:none}
+/* footer */
+.site-foot{border-top:1.5px solid var(--ink);padding:44px 6vw;display:flex;justify-content:space-between;
+  flex-wrap:wrap;gap:18px;font-family:'IBM Plex Mono';font-size:12px;color:var(--mute);background:var(--paper-2)}
+/* mobile */
+.mtoggle{display:none}
+@media(max-width:920px){
+  .shell{grid-template-columns:1fr}
+  .rail{position:fixed;left:0;top:0;bottom:0;width:min(320px,86vw);z-index:80;transform:translateX(-102%);
+    transition:transform .3s;border-right:1.5px solid var(--ink);box-shadow:20px 0 60px rgba(21,27,54,.2)}
+  .rail.open{transform:none}
+  .mtoggle{display:grid;place-items:center;position:fixed;bottom:22px;right:22px;z-index:85;width:58px;height:58px;
+    border-radius:50%;background:var(--ink);color:var(--paper);border:none;font-size:20px;cursor:pointer;
+    box-shadow:0 12px 30px rgba(21,27,54,.35)}
+  .canvas{padding:54px 22px 90px}
+  .hero{padding:60px 26px 50px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .rv,.hero h1 .w,.hero-sub,.hero-cta,.hero-kicker,.tokenline,.hero-foot{opacity:1;transform:none}
+}
+</style>
 </head>
-
 <body>
 
-  <!-- ================= HERO ================= -->
-  <section class="hero">
-    <div class="hero-kicker">An open atlas · free forever · no login</div>
-    <div class="hero-title-wrap">
-      <svg id="arcs" aria-hidden="true"></svg>
-      <h1><span class="w">How</span> <span class="w it">machines</span> <span class="w">learn</span> <span
-          class="w">to</span> <span class="w it">read.</span></h1>
-    </div>
-    <p class="hero-sub">A hands-on journey through the transformer — the architecture behind modern AI —
-      told in <em>thirteen small lessons</em> with living instruments you can touch. Start anywhere. Finish
-      understanding everything.</p>
-
-    <div class="tokenline">
-      <div class="tl-cap">Watch yourself become tokens — type your name</div>
-      <input id="nameIn" type="text" placeholder="deepson" maxlength="40" autocomplete="off">
-      <div class="tokchips" id="nameToks"></div>
-    </div>
-
-    <div class="hero-cta">
-      <button class="btn-main" onclick="document.getElementById('course').scrollIntoView({behavior:'smooth'})">
-        Enter the atlas <span class="ar">→</span></button>
-      <span class="hero-meta">13 lessons · 7 instruments · MIT license</span>
-    </div>
-    <div class="hero-foot"><span>Attention Atlas</span><span>vectors → attention → language</span><span>scroll ↓</span>
-    </div>
-  </section>
-
-  <!-- ================= COURSE ================= -->
-  <div class="shell" id="course">
-    <aside class="rail" id="rail">
-      <div class="rail-brand"><span class="sq"></span>Attention Atlas</div>
-      <div class="rail-note">The stack · climb it</div>
-      <div class="prog-line"><span>progress</span><span id="pPct">0%</span></div>
-      <div class="prog-track">
-        <div class="prog-fill" id="pFill"></div>
-      </div>
-      <nav class="stack" id="stack" aria-label="Lessons">
-        <div class="orb" id="orb"></div>
-      </nav>
-    </aside>
-    <main class="canvas" id="canvas"></main>
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="hero-kicker">An open atlas · free forever · no login</div>
+  <div class="hero-title-wrap">
+    <svg id="arcs" aria-hidden="true"></svg>
+    <h1><span class="w">How</span> <span class="w it">machines</span> <span class="w">learn</span> <span class="w">to</span> <span class="w it">read.</span></h1>
   </div>
-  <button class="mtoggle" id="mtoggle" aria-label="Lessons">☰</button>
+  <p class="hero-sub">A hands-on journey through the transformer — the architecture behind modern AI —
+    told in <em>thirteen small lessons</em> with living instruments you can touch. Start anywhere. Finish understanding everything.</p>
 
-  <footer class="site-foot">
-    <span>Attention Atlas — an open educational project</span>
-    <span>MIT licensed · built for learners &amp; classrooms</span>
-  </footer>
+  <div class="tokenline">
+    <div class="tl-cap">Watch yourself become tokens — type your name</div>
+    <input id="nameIn" type="text" placeholder="deepson" maxlength="40" autocomplete="off">
+    <div class="tokchips" id="nameToks"></div>
+  </div>
 
-  <script>
-    /* ═══════════════ diagrams (paper style) ═══════════════ */
-    const INK = '#151B36', MUTE = '#7C8199', BLUE = '#2B3CF0', RED = '#E8442E', GOLD = '#C98F0A', GREEN = '#1B8A5A', HAIR = '#E2DCCB';
-    const dVector = `<svg viewBox="0 0 560 300" role="img">
+  <div class="hero-cta">
+    <button class="btn-main" onclick="document.getElementById('course').scrollIntoView({behavior:'smooth'})">
+      Enter the atlas <span class="ar">→</span></button>
+    <span class="hero-meta">13 lessons · 7 instruments · MIT license</span>
+  </div>
+  <div class="hero-foot"><span>Attention Atlas</span><span>vectors → attention → language</span><span>scroll ↓</span></div>
+</section>
+
+<!-- ================= COURSE ================= -->
+<div class="shell" id="course">
+  <aside class="rail" id="rail">
+    <div class="rail-brand"><span class="sq"></span>Attention Atlas</div>
+    <div class="rail-note">The stack · climb it</div>
+    <div class="prog-line"><span>progress</span><span id="pPct">0%</span></div>
+    <div class="prog-track"><div class="prog-fill" id="pFill"></div></div>
+    <nav class="stack" id="stack" aria-label="Lessons"><div class="orb" id="orb"></div></nav>
+  </aside>
+  <main class="canvas" id="canvas"></main>
+</div>
+<button class="mtoggle" id="mtoggle" aria-label="Lessons">☰</button>
+
+<footer class="site-foot">
+  <span>Attention Atlas — an open educational project</span>
+  <span>MIT licensed · built for learners &amp; classrooms</span>
+</footer>
+
+<script>
+/* ═══════════════ diagrams (paper style) ═══════════════ */
+const INK='#151B36',MUTE='#7C8199',BLUE='#2B3CF0',RED='#E8442E',GOLD='#C98F0A',GREEN='#1B8A5A',HAIR='#E2DCCB';
+const dVector=`<svg viewBox="0 0 560 300" role="img">
 <defs><marker id="m1" markerWidth="8" markerHeight="8" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5Z" fill="${BLUE}"/></marker></defs>
 <line x1="50" y1="258" x2="530" y2="258" stroke="${INK}" stroke-width="1.5"/>
 <line x1="70" y1="26" x2="70" y2="272" stroke="${INK}" stroke-width="1.5"/>
@@ -1351,7 +320,7 @@
 <circle cx="258" cy="136" r="6" fill="${BLUE}" opacity=".75"/><text x="268" y="132" fill="${INK}" font-size="14" font-family="Fraunces" font-style="italic">queen</text>
 <circle cx="430" cy="212" r="6" fill="${RED}"/><text x="440" y="208" fill="${INK}" font-size="14" font-family="Fraunces" font-style="italic">banana</text>
 <text x="160" y="246" fill="${MUTE}" font-size="12" font-style="italic" font-family="Fraunces">similar meanings sit close together</text></svg>`;
-    const dQKV = `<svg viewBox="0 0 600 330" role="img">
+const dQKV=`<svg viewBox="0 0 600 330" role="img">
 <defs><marker id="m2" markerWidth="8" markerHeight="8" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5Z" fill="${MUTE}"/></marker></defs>
 <rect x="30" y="132" width="100" height="48" rx="11" fill="none" stroke="${BLUE}" stroke-width="2"/>
 <text x="80" y="161" fill="${BLUE}" font-size="14" text-anchor="middle" font-family="IBM Plex Mono">Query</text>
@@ -1373,18 +342,16 @@
 <line x1="295" y1="136" x2="295" y2="154" stroke="${MUTE}" stroke-width="1.5" marker-end="url(#m2)"/>
 <line x1="360" y1="181" x2="438" y2="158" stroke="${MUTE}" stroke-width="1.5" marker-end="url(#m2)"/>
 <line x1="130" y1="250" x2="438" y2="170" stroke="${MUTE}" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#m2)"/></svg>`;
-    const dHeads = `<svg viewBox="0 0 580 270" role="img">
+const dHeads=`<svg viewBox="0 0 580 270" role="img">
 <text x="290" y="24" fill="${MUTE}" font-size="13" text-anchor="middle" font-style="italic" font-family="Fraunces">one sentence, seen from four angles at once</text>
-${[0, 1, 2, 3].map(i => {
-      const x = 42 + i * 130; const c = [BLUE, GOLD, RED, GREEN][i];
-      return `<rect x="${x}" y="52" width="104" height="94" rx="12" fill="none" stroke="${c}" stroke-width="2"/>
- <text x="${x + 52}" y="92" fill="${c}" font-size="14" text-anchor="middle" font-family="IBM Plex Mono">head ${i + 1}</text>
- <text x="${x + 52}" y="114" fill="${MUTE}" font-size="10.5" text-anchor="middle">${['syntax', 'subjects', 'nearby', 'long-range'][i]}</text>
- <line x1="${x + 52}" y1="146" x2="290" y2="192" stroke="${HAIR}" stroke-width="1.5"/>`
-    }).join('')}
+${[0,1,2,3].map(i=>{const x=42+i*130;const c=[BLUE,GOLD,RED,GREEN][i];
+ return`<rect x="${x}" y="52" width="104" height="94" rx="12" fill="none" stroke="${c}" stroke-width="2"/>
+ <text x="${x+52}" y="92" fill="${c}" font-size="14" text-anchor="middle" font-family="IBM Plex Mono">head ${i+1}</text>
+ <text x="${x+52}" y="114" fill="${MUTE}" font-size="10.5" text-anchor="middle">${['syntax','subjects','nearby','long-range'][i]}</text>
+ <line x1="${x+52}" y1="146" x2="290" y2="192" stroke="${HAIR}" stroke-width="1.5"/>`}).join('')}
 <rect x="196" y="194" width="188" height="50" rx="12" fill="#FAF7F0" stroke="${INK}" stroke-width="1.5"/>
 <text x="290" y="224" fill="${INK}" font-size="14" text-anchor="middle" font-family="IBM Plex Mono">concatenate + mix</text></svg>`;
-    const dBlock = `<svg viewBox="0 0 420 396" role="img">
+const dBlock=`<svg viewBox="0 0 420 396" role="img">
 <rect x="70" y="18" width="280" height="42" rx="10" fill="#FAF7F0" stroke="${HAIR}" stroke-width="1.5"/>
 <text x="210" y="44" fill="${MUTE}" font-size="12.5" text-anchor="middle">token vectors in</text>
 <rect x="70" y="92" width="280" height="56" rx="12" fill="none" stroke="${BLUE}" stroke-width="2"/>
@@ -1403,56 +370,49 @@ ${[0, 1, 2, 3].map(i => {
 <text x="358" y="122" fill="${GREEN}" font-size="10" font-family="IBM Plex Mono">+ norm</text>
 <text x="358" y="218" fill="${GREEN}" font-size="10" font-family="IBM Plex Mono">+ norm</text>
 <text x="210" y="368" fill="${MUTE}" font-size="12" text-anchor="middle" font-style="italic" font-family="Fraunces">same shape in, same shape out — stack like bricks</text></svg>`;
-    const dStack = `<svg viewBox="0 0 520 280" role="img">
+const dStack=`<svg viewBox="0 0 520 280" role="img">
 <rect x="24" y="118" width="88" height="48" rx="10" fill="#FAF7F0" stroke="${HAIR}" stroke-width="1.5"/>
 <text x="68" y="139" fill="${INK}" font-size="11" text-anchor="middle" font-family="Fraunces" font-style="italic">"The cat</text>
 <text x="68" y="155" fill="${INK}" font-size="11" text-anchor="middle" font-family="Fraunces" font-style="italic">sat on…"</text>
-${[0, 1, 2, 3].map(i => {
-      const x = 140 + i * 78; return `
+${[0,1,2,3].map(i=>{const x=140+i*78;return`
 <rect x="${x}" y="110" width="62" height="66" rx="10" fill="none" stroke="${BLUE}" stroke-width="2"/>
-<text x="${x + 31}" y="140" fill="${BLUE}" font-size="11" text-anchor="middle" font-family="IBM Plex Mono">block</text>
-<text x="${x + 31}" y="156" fill="${BLUE}" font-size="11" text-anchor="middle" font-family="IBM Plex Mono">${i + 1}</text>
-<line x1="${x - 16}" y1="143" x2="${x - 2}" y2="143" stroke="${MUTE}" stroke-width="1.5"/>`
-    }).join('')}
+<text x="${x+31}" y="140" fill="${BLUE}" font-size="11" text-anchor="middle" font-family="IBM Plex Mono">block</text>
+<text x="${x+31}" y="156" fill="${BLUE}" font-size="11" text-anchor="middle" font-family="IBM Plex Mono">${i+1}</text>
+<line x1="${x-16}" y1="143" x2="${x-2}" y2="143" stroke="${MUTE}" stroke-width="1.5"/>`}).join('')}
 <text x="330" y="98" fill="${MUTE}" font-size="11" font-family="IBM Plex Mono">… N blocks …</text>
 <rect x="452" y="110" width="58" height="66" rx="10" fill="none" stroke="${RED}" stroke-width="2"/>
 <text x="481" y="147" fill="${RED}" font-size="11" text-anchor="middle" font-family="IBM Plex Mono">predict</text>
 <line x1="112" y1="143" x2="138" y2="143" stroke="${MUTE}" stroke-width="1.5"/>
 <text x="260" y="230" fill="${MUTE}" font-size="12.5" text-anchor="middle" font-style="italic" font-family="Fraunces">every block refines the meaning; the last one guesses what comes next</text></svg>`;
-    const dToken = `<svg viewBox="0 0 560 180" role="img">
+const dToken=`<svg viewBox="0 0 560 180" role="img">
 <text x="24" y="42" fill="${INK}" font-size="17" font-family="IBM Plex Mono">"unbelievable"</text>
-${[['un', BLUE, 2841], ['believ', GOLD, 9032], ['able', RED, 451]].map((t, i) => {
-      const x = 44 + i * 140; return `
+${[['un',BLUE,2841],['believ',GOLD,9032],['able',RED,451]].map((t,i)=>{const x=44+i*140;return`
 <rect x="${x}" y="86" width="118" height="42" rx="10" fill="none" stroke="${t[1]}" stroke-width="2"/>
-<text x="${x + 59}" y="112" fill="${t[1]}" font-size="15" text-anchor="middle" font-family="IBM Plex Mono">${t[0]}</text>
-<text x="${x + 59}" y="156" fill="${MUTE}" font-size="12" text-anchor="middle" font-family="IBM Plex Mono">${t[2]}</text>`
-    }).join('')}
+<text x="${x+59}" y="112" fill="${t[1]}" font-size="15" text-anchor="middle" font-family="IBM Plex Mono">${t[0]}</text>
+<text x="${x+59}" y="156" fill="${MUTE}" font-size="12" text-anchor="middle" font-family="IBM Plex Mono">${t[2]}</text>`}).join('')}
 <text x="500" y="156" fill="${MUTE}" font-size="10.5">← token IDs</text>
 <line x1="132" y1="52" x2="132" y2="78" stroke="${MUTE}" stroke-width="1.5"/></svg>`;
-    const dLoss = `<svg viewBox="0 0 460 250" role="img">
+const dLoss=`<svg viewBox="0 0 460 250" role="img">
 <path d="M36 42 Q230 318 424 42" fill="none" stroke="${INK}" stroke-width="2"/>
 <circle cx="104" cy="152" r="9" fill="${GOLD}"/><text x="70" y="140" fill="${GOLD}" font-size="12" font-family="IBM Plex Mono">start</text>
 <path d="M113 158 Q160 208 196 216" fill="none" stroke="${GOLD}" stroke-width="1.5" stroke-dasharray="5 4"/>
 <circle cx="230" cy="222" r="9" fill="${GREEN}"/>
 <text x="230" y="246" fill="${GREEN}" font-size="11.5" text-anchor="middle" font-family="IBM Plex Mono">lowest loss = best model</text>
 <text x="36" y="30" fill="${MUTE}" font-size="11" font-family="IBM Plex Mono">high error</text></svg>`;
-    const dPipe = `<svg viewBox="0 0 600 190" role="img">
+const dPipe=`<svg viewBox="0 0 600 190" role="img">
 <defs><marker id="m3" markerWidth="8" markerHeight="8" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5Z" fill="${MUTE}"/></marker></defs>
-${[['Pretrain', 'read the internet', BLUE], ['Fine-tune', 'learn to follow tasks', GOLD], ['Align', 'learn human preferences', RED], ['Serve', 'answer your prompts', GREEN]]
-        .map((s, i) => {
-          const x = 22 + i * 148; return `
+${[['Pretrain','read the internet',BLUE],['Fine-tune','learn to follow tasks',GOLD],['Align','learn human preferences',RED],['Serve','answer your prompts',GREEN]]
+.map((s,i)=>{const x=22+i*148;return`
 <rect x="${x}" y="56" width="126" height="74" rx="13" fill="none" stroke="${s[2]}" stroke-width="2"/>
-<text x="${x + 63}" y="90" fill="${s[2]}" font-size="15" text-anchor="middle" font-family="IBM Plex Mono">${s[0]}</text>
-<text x="${x + 63}" y="112" fill="${MUTE}" font-size="10" text-anchor="middle">${s[1]}</text>
-${i < 3 ? `<line x1="${x + 126}" y1="93" x2="${x + 148}" y2="93" stroke="${MUTE}" stroke-width="1.5" marker-end="url(#m3)"/>` : ''}`
-        }).join('')}</svg>`;
+<text x="${x+63}" y="90" fill="${s[2]}" font-size="15" text-anchor="middle" font-family="IBM Plex Mono">${s[0]}</text>
+<text x="${x+63}" y="112" fill="${MUTE}" font-size="10" text-anchor="middle">${s[1]}</text>
+${i<3?`<line x1="${x+126}" y1="93" x2="${x+148}" y2="93" stroke="${MUTE}" stroke-width="1.5" marker-end="url(#m3)"/>`:''}`}).join('')}</svg>`;
 
-    /* ═══════════════ lessons ═══════════════ */
-    const L = [
-      {
-        id: "vectors", n: "00", t: "Numbers & vectors", tool: "vec",
-        idea: `A computer cannot read the word <b>cat</b>. So everything begins with a quiet trick: turn every word into <b>a list of numbers</b> — and a list of numbers is just <b>a point in space</b>.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · Why numbers</div><h3>Models do arithmetic, not reading</h3>
+/* ═══════════════ lessons ═══════════════ */
+const L=[
+{id:"vectors",n:"00",t:"Numbers & vectors",tool:"vec",
+ idea:`A computer cannot read the word <b>cat</b>. So everything begins with a quiet trick: turn every word into <b>a list of numbers</b> — and a list of numbers is just <b>a point in space</b>.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · Why numbers</div><h3>Models do arithmetic, not reading</h3>
  <p>Before a transformer can do anything clever, every word is swapped for its <span class="key">vector</span> — a small list of numbers that will stand in for it everywhere.</p>
  <div class="eq">"cat" → <span class="hl">[0.8, −0.2, 0.5]</span></div>
  <p>Real models use hundreds or thousands of numbers per word. We'll use two, so we can draw them.</p></div>
@@ -1461,15 +421,13 @@ ${i < 3 ? `<line x1="${x + 126}" y1="93" x2="${x + 148}" y2="93" stroke="${MUTE}
  <div class="fig rv">${dVector}<div class="cap"><b>Fig 0.1</b> — Words placed by meaning: <i>king</i> and <i>queen</i> land close; <i>banana</i> keeps its distance.</div></div>
  <div class="step rv"><div class="step-tag">Step 3 · Touch it</div><h3>Drag the point</h3>
  <p>The instrument below is a tiny two-dimensional world. Drag the glowing point and watch its coordinates — that pair of numbers <i>is</i> the vector.</p></div>`,
-        quiz: [{ q: "What does a word become, so a model can use it?", o: ["A picture", "A list of numbers — a vector", "A sound wave"], a: 1, e: "Every word becomes a vector: a list of numbers, which is a point in space." },
-        { q: "Why do real models use hundreds of numbers per word?", o: ["To run slower", "More dimensions hold more shades of meaning", "Tradition"], a: 1, e: "More dimensions give room to separate subtle differences in meaning." }],
-        ref: "In one sentence: why does everything start by turning words into numbers?"
-      },
+ quiz:[{q:"What does a word become, so a model can use it?",o:["A picture","A list of numbers — a vector","A sound wave"],a:1,e:"Every word becomes a vector: a list of numbers, which is a point in space."},
+ {q:"Why do real models use hundreds of numbers per word?",o:["To run slower","More dimensions hold more shades of meaning","Tradition"],a:1,e:"More dimensions give room to separate subtle differences in meaning."}],
+ ref:"In one sentence: why does everything start by turning words into numbers?"},
 
-      {
-        id: "dot", n: "01", t: "Dot products", tool: "dot",
-        idea: `One tiny operation underwrites all of attention: the <b>dot product</b>. It answers a single question — <b>how much do two vectors point the same way?</b>`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · The recipe</div><h3>Multiply, then add</h3>
+{id:"dot",n:"01",t:"Dot products",tool:"dot",
+ idea:`One tiny operation underwrites all of attention: the <b>dot product</b>. It answers a single question — <b>how much do two vectors point the same way?</b>`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · The recipe</div><h3>Multiply, then add</h3>
  <p>Multiply the two vectors position by position, then sum. That is the entire operation.</p>
  <div class="eq">[2, 3] · [4, 1] = (2×4) + (3×1) = <span class="hl">11</span></div></div>
  <div class="step rv"><div class="step-tag">Step 2 · The meaning</div><h3>One number, three moods</h3>
@@ -1477,15 +435,13 @@ ${i < 3 ? `<line x1="${x + 126}" y1="93" x2="${x + 148}" y2="93" stroke="${MUTE}
  <div class="note"><b>Hold onto this.</b> In AI, "similarity" almost always means "a big dot product." Attention — the heart of the transformer — is dot products deciding who matters to whom.</div></div>
  <div class="step rv"><div class="step-tag">Step 3 · Feel it</div><h3>Swing the arrows</h3>
  <p>Drag either arrow. Line them up and the number climbs. Pull them apart and it falls through zero into the negatives.</p></div>`,
-        quiz: [{ q: "Two vectors point nearly the same way. Their dot product is…", o: ["Large and positive", "Near zero", "Negative"], a: 0, e: "Aligned vectors give a large positive dot product — 'very similar.'" },
-        { q: "In AI models, 'similar' usually means…", o: ["Same spelling", "A big dot product", "Same length"], a: 1, e: "Similarity is measured by the dot product between vectors." }],
-        ref: "Without formulas: what does a dot product tell you about two vectors?"
-      },
+ quiz:[{q:"Two vectors point nearly the same way. Their dot product is…",o:["Large and positive","Near zero","Negative"],a:0,e:"Aligned vectors give a large positive dot product — 'very similar.'"},
+ {q:"In AI models, 'similar' usually means…",o:["Same spelling","A big dot product","Same length"],a:1,e:"Similarity is measured by the dot product between vectors."}],
+ ref:"Without formulas: what does a dot product tell you about two vectors?"},
 
-      {
-        id: "embed", n: "02", t: "Embeddings",
-        idea: `An <b>embedding</b> is the learned map that decides where every word lives. Train it well, and <b>geometry starts to mean something</b>.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · Meaning becomes place</div><h3>Nobody tells the model what words mean</h3>
+{id:"embed",n:"02",t:"Embeddings",
+ idea:`An <b>embedding</b> is the learned map that decides where every word lives. Train it well, and <b>geometry starts to mean something</b>.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · Meaning becomes place</div><h3>Nobody tells the model what words mean</h3>
  <p>By reading oceans of text, it learns to place words so that ones used similarly end up nearby. That learned placement is the <span class="key">embedding</span>.</p></div>
  <div class="fig rv">${dVector}<div class="cap"><b>Fig 2.1</b> — After training, related words cluster; unrelated ones drift apart.</div></div>
  <div class="step rv"><div class="step-tag">Step 2 · Directions carry meaning</div><h3>The famous arithmetic</h3>
@@ -1493,30 +449,26 @@ ${i < 3 ? `<line x1="${x + 126}" y1="93" x2="${x + 148}" y2="93" stroke="${MUTE}
  <div class="eq">king − man + woman ≈ <span class="hl">queen</span></div></div>
  <div class="step rv"><div class="step-tag">Step 3 · Why it matters</div><h3>Meaning you can compute with</h3>
  <p>Once meaning is geometry, the model can do math on it — with the dot products from lesson 01. Embeddings are the bridge between language and arithmetic.</p></div>`,
-        quiz: [{ q: "What does an embedding decide?", o: ["A word's spelling", "Where each word sits in vector space", "Model speed"], a: 1, e: "An embedding is the learned placement of words in space." },
-        { q: "'king − man + woman ≈ queen' shows that…", o: ["Words are random", "Directions can encode concepts", "Math is broken"], a: 1, e: "A consistent direction can capture a relationship like gender." }],
-        ref: "Why is it useful that similar words end up near each other?"
-      },
+ quiz:[{q:"What does an embedding decide?",o:["A word's spelling","Where each word sits in vector space","Model speed"],a:1,e:"An embedding is the learned placement of words in space."},
+ {q:"'king − man + woman ≈ queen' shows that…",o:["Words are random","Directions can encode concepts","Math is broken"],a:1,e:"A consistent direction can capture a relationship like gender."}],
+ ref:"Why is it useful that similar words end up near each other?"},
 
-      {
-        id: "attn", n: "03", t: "Attention, intuitively", tool: "attn",
-        idea: `Words don't mean much alone. In <i>"the animal didn't cross the street because <b>it</b> was tired,"</i> what is <b>it</b>? Attention lets each word <b>look at the others</b> to find out.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · Context is everything</div><h3>"Bank" needs its neighbors</h3>
+{id:"attn",n:"03",t:"Attention, intuitively",tool:"attn",
+ idea:`Words don't mean much alone. In <i>"the animal didn't cross the street because <b>it</b> was tired,"</i> what is <b>it</b>? Attention lets each word <b>look at the others</b> to find out.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · Context is everything</div><h3>"Bank" needs its neighbors</h3>
  <p>"River bank" and "savings bank" share a word but not a meaning. To understand a word, a model must let it <b>peek at the words around it</b>. That peeking, made precise, is attention.</p></div>
  <div class="step rv"><div class="step-tag">Step 2 · Everyone looks at everyone</div><h3>Score, then blend</h3>
  <p>For each word, attention scores <i>how relevant every other word is</i>, then blends their information together — the relevant ones loudly, the irrelevant ones barely at all.</p>
  <div class="note"><b>Recognize the scores?</b> They're dot products, from lesson 01. Attention is dot-product similarity turned into a weighted blend.</div></div>
  <div class="step rv"><div class="step-tag">Step 3 · Watch it look</div><h3>Click a word</h3>
  <p>Pick any word below and see where its attention goes across the sentence.</p></div>`,
-        quiz: [{ q: "Why must a word 'look at' other words?", o: ["To check spelling", "Its meaning depends on context", "To count them"], a: 1, e: "Meaning depends on context — attention supplies it." },
-        { q: "Attention's relevance scores are computed with…", o: ["Random numbers", "Dot products", "Coin flips"], a: 1, e: "The scores are dot products between word vectors." }],
-        ref: "Explain attention to a friend using the two meanings of 'bank.'"
-      },
+ quiz:[{q:"Why must a word 'look at' other words?",o:["To check spelling","Its meaning depends on context","To count them"],a:1,e:"Meaning depends on context — attention supplies it."},
+ {q:"Attention's relevance scores are computed with…",o:["Random numbers","Dot products","Coin flips"],a:1,e:"The scores are dot products between word vectors."}],
+ ref:"Explain attention to a friend using the two meanings of 'bank.'"},
 
-      {
-        id: "soft", n: "04", t: "Softmax & temperature", tool: "soft",
-        idea: `Attention produces raw scores, but we need <b>shares that sum to 100%</b>. <b>Softmax</b> makes the conversion — and its <b>temperature</b> dial sets how bold the model dares to be.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · Scores to shares</div><h3>A fair division</h3>
+{id:"soft",n:"04",t:"Softmax & temperature",tool:"soft",
+ idea:`Attention produces raw scores, but we need <b>shares that sum to 100%</b>. <b>Softmax</b> makes the conversion — and its <b>temperature</b> dial sets how bold the model dares to be.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · Scores to shares</div><h3>A fair division</h3>
  <p>Softmax takes any list of scores and returns positive shares that add to one. Bigger score, bigger share — always.</p>
  <div class="eq">scores [3.2, 1.1, 2.4] → shares <span class="hl">[62%, 8%, 30%]</span></div></div>
  <div class="step rv"><div class="step-tag">Step 2 · The boldness dial</div><h3>Temperature</h3>
@@ -1524,60 +476,52 @@ ${i < 3 ? `<line x1="${x + 126}" y1="93" x2="${x + 148}" y2="93" stroke="${MUTE}
  <div class="note"><b>You've met this dial.</b> The "temperature" setting in chatbots is exactly this number. Down for facts, up for poetry.</div></div>
  <div class="step rv"><div class="step-tag">Step 3 · Turn it</div><h3>Watch the bars breathe</h3>
  <p>Drag the temperature. Near zero, one bar swallows everything. Turn it up and the field levels.</p></div>`,
-        quiz: [{ q: "Softmax guarantees its outputs are…", o: ["All equal", "Positive and summing to 1", "Negative"], a: 1, e: "It produces a probability distribution: positive shares summing to 1." },
-        { q: "Raising temperature makes a model…", o: ["More decisive", "More random and creative", "Faster"], a: 1, e: "Higher temperature flattens the distribution — more varied outputs." }],
-        ref: "When would you want low temperature, and when high?"
-      },
+ quiz:[{q:"Softmax guarantees its outputs are…",o:["All equal","Positive and summing to 1","Negative"],a:1,e:"It produces a probability distribution: positive shares summing to 1."},
+ {q:"Raising temperature makes a model…",o:["More decisive","More random and creative","Faster"],a:1,e:"Higher temperature flattens the distribution — more varied outputs."}],
+ ref:"When would you want low temperature, and when high?"},
 
-      {
-        id: "head", n: "05", t: "A single attention head",
-        idea: `Now the machinery. Each word makes three vectors — a <b>Query</b> (what am I seeking?), a <b>Key</b> (what do I offer?), a <b>Value</b> (what I'll hand over). One head is these three, choreographed.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · Three roles</div><h3>A search, in miniature</h3>
+{id:"head",n:"05",t:"A single attention head",
+ idea:`Now the machinery. Each word makes three vectors — a <b>Query</b> (what am I seeking?), a <b>Key</b> (what do I offer?), a <b>Value</b> (what I'll hand over). One head is these three, choreographed.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · Three roles</div><h3>A search, in miniature</h3>
  <p>Your <span class="key">Query</span> is what you're after. Every word's <span class="key">Key</span> is its label. Its <span class="key">Value</span> is the content you receive if the label matches.</p></div>
  <div class="step rv"><div class="step-tag">Step 2 · Match, then blend</div><h3>Everything you've learned, at once</h3>
  <p>Score each Query against every Key with a <b>dot product</b> (01). Pass the scores through <b>softmax</b> (04) to get weights. Blend the <b>Values</b> by those weights. The result is the word's new, context-aware self.</p></div>
  <div class="fig rv">${dQKV}<div class="cap"><b>Fig 5.1</b> — One head: Q·K scores, softmax weights, a weighted blend of Values.</div></div>
  <div class="step rv"><div class="step-tag">Step 3 · The reveal</div><h3>That's the whole trick</h3>
  <p>Vectors, dot products, softmax — three small ideas snapped together. An attention head is nothing more, and nothing less.</p></div>`,
-        quiz: [{ q: "Which vector says 'what this word is looking for'?", o: ["Key", "Query", "Value"], a: 1, e: "The Query seeks; Keys advertise; Values deliver." },
-        { q: "A head's final output is…", o: ["A single number", "A weighted sum of Value vectors", "The largest Key"], a: 1, e: "Softmax weights blend the Values into a new vector." },
-        { q: "Which two earlier ideas power the head?", o: ["Dot product & softmax", "Spelling & grammar", "Sorting & counting"], a: 0, e: "Dot products score; softmax converts scores to blend weights." }],
-        ref: "In your own words: what do Query, Key, and Value each do?"
-      },
+ quiz:[{q:"Which vector says 'what this word is looking for'?",o:["Key","Query","Value"],a:1,e:"The Query seeks; Keys advertise; Values deliver."},
+ {q:"A head's final output is…",o:["A single number","A weighted sum of Value vectors","The largest Key"],a:1,e:"Softmax weights blend the Values into a new vector."},
+ {q:"Which two earlier ideas power the head?",o:["Dot product & softmax","Spelling & grammar","Sorting & counting"],a:0,e:"Dot products score; softmax converts scores to blend weights."}],
+ ref:"In your own words: what do Query, Key, and Value each do?"},
 
-      {
-        id: "multi", n: "06", t: "Multi-head attention",
-        idea: `One head sees one kind of relationship. Real transformers run <b>many heads at once</b>, each free to notice something different — then merge what they found.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · Several viewpoints</div><h3>Specialists, in parallel</h3>
+{id:"multi",n:"06",t:"Multi-head attention",
+ idea:`One head sees one kind of relationship. Real transformers run <b>many heads at once</b>, each free to notice something different — then merge what they found.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · Several viewpoints</div><h3>Specialists, in parallel</h3>
  <p>One head tracks <i>who did what</i>. Another pairs <i>adjectives with nouns</i>. Another watches <i>far-away references</i>. Splitting the work lets the model see many patterns simultaneously.</p></div>
  <div class="fig rv">${dHeads}<div class="cap"><b>Fig 6.1</b> — Heads attend differently; their outputs are concatenated and mixed.</div></div>
  <div class="step rv"><div class="step-tag">Step 2 · Recombine</div><h3>One rich answer</h3>
  <p>The heads' outputs are joined and passed through one small mixing step, blending the perspectives into a single richer vector per word.</p></div>
  <div class="step rv"><div class="step-tag">Step 3 · Why not one big head?</div><h3>Division of labor wins</h3>
  <p>Many specialized heads consistently learn richer structure than one large generalist — a genuine case of teamwork beating size.</p></div>`,
-        quiz: [{ q: "Why multiple heads?", o: ["To slow things down", "So each can focus on a different relationship", "To save memory"], a: 1, e: "Heads specialize, capturing different patterns at once." },
-        { q: "After the heads run, their outputs are…", o: ["Discarded", "Concatenated and mixed", "Alphabetized"], a: 1, e: "They're combined into one richer representation per word." }],
-        ref: "Name two different relationships two heads might each track."
-      },
+ quiz:[{q:"Why multiple heads?",o:["To slow things down","So each can focus on a different relationship","To save memory"],a:1,e:"Heads specialize, capturing different patterns at once."},
+ {q:"After the heads run, their outputs are…",o:["Discarded","Concatenated and mixed","Alphabetized"],a:1,e:"They're combined into one richer representation per word."}],
+ ref:"Name two different relationships two heads might each track."},
 
-      {
-        id: "pos", n: "07", t: "Positional encoding", tool: "pos",
-        idea: `Attention reads every word at once — so by itself it is <b>blind to order</b>. "Dog bites man" and "man bites dog" would look identical. Positional encoding restores the sequence.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · The blindness</div><h3>Order goes missing</h3>
+{id:"pos",n:"07",t:"Positional encoding",tool:"pos",
+ idea:`Attention reads every word at once — so by itself it is <b>blind to order</b>. "Dog bites man" and "man bites dog" would look identical. Positional encoding restores the sequence.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · The blindness</div><h3>Order goes missing</h3>
  <p>Because every word is compared with every other simultaneously, raw attention can't tell first from last. Position must be injected deliberately.</p></div>
  <div class="step rv"><div class="step-tag">Step 2 · The fix</div><h3>A fingerprint for every seat</h3>
  <p>Each position in the sentence gets a distinctive pattern <b>added into</b> its word's vector — commonly built from smooth <b>sine waves</b> of different speeds, so seat 1, seat 2, seat 3 each carry a unique stripe.</p></div>
  <div class="step rv"><div class="step-tag">Step 3 · Slide through</div><h3>See the stripes change</h3>
  <p>Move the slider through the positions and watch each one produce its own fingerprint.</p></div>`,
-        quiz: [{ q: "Without positional encoding, a transformer…", o: ["Runs faster", "Cannot tell word order", "Uses less memory"], a: 1, e: "Attention is order-blind on its own; order would be lost." },
-        { q: "Positional encoding gives each position…", o: ["A random letter", "A unique pattern added to the vector", "A new spelling"], a: 1, e: "Each seat gets a distinct fingerprint mixed into the word." }],
-        ref: "Why can't attention figure out word order by itself?"
-      },
+ quiz:[{q:"Without positional encoding, a transformer…",o:["Runs faster","Cannot tell word order","Uses less memory"],a:1,e:"Attention is order-blind on its own; order would be lost."},
+ {q:"Positional encoding gives each position…",o:["A random letter","A unique pattern added to the vector","A new spelling"],a:1,e:"Each seat gets a distinct fingerprint mixed into the word."}],
+ ref:"Why can't attention figure out word order by itself?"},
 
-      {
-        id: "block", n: "08", t: "The transformer block",
-        idea: `Wrap attention with a private thinking step and two stabilizers, and you get the <b>repeatable unit</b> of every transformer: the block.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · Two movements</div><h3>Share, then think</h3>
+{id:"block",n:"08",t:"The transformer block",
+ idea:`Wrap attention with a private thinking step and two stabilizers, and you get the <b>repeatable unit</b> of every transformer: the block.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · Two movements</div><h3>Share, then think</h3>
  <p>First <b>attention</b> — the words trade information. Then a <span class="key">feed-forward</span> step — each word privately digests what it just heard.</p></div>
  <div class="fig rv">${dBlock}<div class="cap"><b>Fig 8.1</b> — One block: attention → feed-forward, each wrapped in a residual connection and normalization.</div></div>
  <div class="step rv"><div class="step-tag">Step 2 · Two safety rails</div><h3>The unglamorous heroes</h3>
@@ -1585,15 +529,13 @@ ${i < 3 ? `<line x1="${x + 126}" y1="93" x2="${x + 148}" y2="93" stroke="${MUTE}
  <div class="note"><b>Why care?</b> These two tricks are why deep transformers train at all. Remove them and stacking blocks collapses into chaos.</div></div>
  <div class="step rv"><div class="step-tag">Step 3 · The shape trick</div><h3>Same in, same out</h3>
  <p>Vectors enter, richer vectors of the <i>same shape</i> leave. That sameness is what lets blocks stack like bricks.</p></div>`,
-        quiz: [{ q: "The block's two main stages are…", o: ["Attention and feed-forward", "Sorting and counting", "Reading and writing"], a: 0, e: "Attention shares between words; feed-forward processes each alone." },
-        { q: "A residual connection…", o: ["Deletes information", "Lets input skip ahead, stabilizing training", "Slows the model"], a: 1, e: "Residuals keep deep networks trainable by letting signal bypass layers." }],
-        ref: "What are the two safety rails, and what does each prevent?"
-      },
+ quiz:[{q:"The block's two main stages are…",o:["Attention and feed-forward","Sorting and counting","Reading and writing"],a:0,e:"Attention shares between words; feed-forward processes each alone."},
+ {q:"A residual connection…",o:["Deletes information","Lets input skip ahead, stabilizing training","Slows the model"],a:1,e:"Residuals keep deep networks trainable by letting signal bypass layers."}],
+ ref:"What are the two safety rails, and what does each prevent?"},
 
-      {
-        id: "full", n: "09", t: "The full transformer",
-        idea: `Stack identical blocks a few dozen high, feed embeddings in at the bottom, ask for a prediction at the top — and you have a working transformer.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · The tower</div><h3>Blocks all the way up</h3>
+{id:"full",n:"09",t:"The full transformer",
+ idea:`Stack identical blocks a few dozen high, feed embeddings in at the bottom, ask for a prediction at the top — and you have a working transformer.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · The tower</div><h3>Blocks all the way up</h3>
  <p>Text is embedded (02), stamped with positions (07), then climbs through block after block (08), each pass refining the meaning.</p></div>
  <div class="fig rv">${dStack}<div class="cap"><b>Fig 9.1</b> — Embeddings enter, N blocks refine, the head predicts what comes next.</div></div>
  <div class="step rv"><div class="step-tag">Step 2 · The output</div><h3>One question, asked forever</h3>
@@ -1601,31 +543,27 @@ ${i < 3 ? `<line x1="${x + 126}" y1="93" x2="${x + 148}" y2="93" stroke="${MUTE}
  <div class="eq">"The cat sat on the ___" → <span class="hl">mat 41%</span> · floor 18% · roof 9% · …</div></div>
  <div class="step rv"><div class="step-tag">Step 3 · The loop</div><h3>Generation is repetition</h3>
  <p>Predict a word. Append it. Predict again. Hundreds of turns of that loop, and a paragraph appears. That is how a chatbot "writes."</p></div>`,
-        quiz: [{ q: "What does the top of the transformer produce?", o: ["A picture", "Probabilities over the next word", "Nothing"], a: 1, e: "It outputs a probability for every possible next word." },
-        { q: "How does a model write a passage?", o: ["All at once", "One word at a time, fed back in", "By copying"], a: 1, e: "Predict, append, repeat — the generation loop." }],
-        ref: "Describe the generation loop in one sentence."
-      },
+ quiz:[{q:"What does the top of the transformer produce?",o:["A picture","Probabilities over the next word","Nothing"],a:1,e:"It outputs a probability for every possible next word."},
+ {q:"How does a model write a passage?",o:["All at once","One word at a time, fed back in","By copying"],a:1,e:"Predict, append, repeat — the generation loop."}],
+ ref:"Describe the generation loop in one sentence."},
 
-      {
-        id: "train", n: "10", t: "Training & gradients", tool: "grad",
-        idea: `A fresh model is beautifully organized noise. <b>Training</b> nudges its millions of numbers, over and over, until the guesses get good. The nudging rule is <b>gradient descent</b>.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · Measure the miss</div><h3>The loss</h3>
+{id:"train",n:"10",t:"Training & gradients",tool:"grad",
+ idea:`A fresh model is beautifully organized noise. <b>Training</b> nudges its millions of numbers, over and over, until the guesses get good. The nudging rule is <b>gradient descent</b>.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · Measure the miss</div><h3>The loss</h3>
  <p>Show the model text. Let it guess the next word. Compare with the truth. The gap, squeezed into one number, is the <span class="key">loss</span>.</p></div>
  <div class="step rv"><div class="step-tag">Step 2 · Roll downhill</div><h3>The landscape</h3>
  <p>Imagine loss as terrain — hills of error, valleys of accuracy. Training asks <i>which way is down?</i> (the <span class="key">gradient</span>) and steps that way. The step size is the <b>learning rate</b>.</p></div>
  <div class="fig rv">${dLoss}<div class="cap"><b>Fig 10.1</b> — Gradient descent rolls the model's settings downhill toward smaller error.</div></div>
  <div class="step rv"><div class="step-tag">Step 3 · Roll it yourself</div><h3>Mind the step size</h3>
  <p>Take steps and watch the ball descend. Crank the learning rate too high and it overshoots the valley; too low and it crawls forever.</p></div>`,
-        quiz: [{ q: "The loss is…", o: ["The model's speed", "A number measuring how wrong it was", "The word count"], a: 1, e: "Loss quantifies the gap between prediction and truth." },
-        { q: "Gradient descent moves the settings…", o: ["Uphill", "Downhill, toward less error", "Randomly"], a: 1, e: "It steps in the downhill direction to shrink the loss." },
-        { q: "A far-too-high learning rate causes…", o: ["Overshooting and instability", "Perfection", "Silence"], a: 0, e: "Huge steps leap past the valley and can diverge entirely." }],
-        ref: "Explain gradient descent using the hill-and-valley picture."
-      },
+ quiz:[{q:"The loss is…",o:["The model's speed","A number measuring how wrong it was","The word count"],a:1,e:"Loss quantifies the gap between prediction and truth."},
+ {q:"Gradient descent moves the settings…",o:["Uphill","Downhill, toward less error","Randomly"],a:1,e:"It steps in the downhill direction to shrink the loss."},
+ {q:"A far-too-high learning rate causes…",o:["Overshooting and instability","Perfection","Silence"],a:0,e:"Huge steps leap past the valley and can diverge entirely."}],
+ ref:"Explain gradient descent using the hill-and-valley picture."},
 
-      {
-        id: "tok", n: "11", t: "Tokenization", tool: "tokz",
-        idea: `Before any of this, text is chopped into pieces the model knows — <b>tokens</b>. They're usually <b>chunks of words</b>, which is how models read words they've never seen.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · Not quite words</div><h3>Pieces, not dictionary entries</h3>
+{id:"tok",n:"11",t:"Tokenization",tool:"tokz",
+ idea:`Before any of this, text is chopped into pieces the model knows — <b>tokens</b>. They're usually <b>chunks of words</b>, which is how models read words they've never seen.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · Not quite words</div><h3>Pieces, not dictionary entries</h3>
  <p>A dictionary of every word would be enormous and still miss tomorrow's slang. Instead, models learn a vocabulary of <b>subword pieces</b> and assemble words from them.</p></div>
  <div class="fig rv">${dToken}<div class="cap"><b>Fig 11.1</b> — "unbelievable" splits into familiar pieces, each mapped to its ID.</div></div>
  <div class="step rv"><div class="step-tag">Step 2 · The recipe</div><h3>Byte-pair encoding</h3>
@@ -1633,48 +571,42 @@ ${i < 3 ? `<line x1="${x + 126}" y1="93" x2="${x + 148}" y2="93" stroke="${MUTE}
  <div class="note"><b>Why you'll care:</b> AI pricing and context limits are counted in <i>tokens</i> — roughly ¾ of an English word each.</div></div>
  <div class="step rv"><div class="step-tag">Step 3 · Feed it anything</div><h3>The splitter</h3>
  <p>Type any text into the instrument and watch it break into pieces.</p></div>`,
-        quiz: [{ q: "Why subword tokens instead of whole words?", o: ["Longer text", "Handles unseen words with a manageable vocabulary", "Removes spaces"], a: 1, e: "Subwords can compose any word, even brand-new ones." },
-        { q: "API limits and pricing count…", o: ["Letters", "Tokens", "Sentences"], a: 1, e: "Usage is measured in tokens — about ¾ of a word each." }],
-        ref: "Why can a model read a word it has never seen?"
-      },
+ quiz:[{q:"Why subword tokens instead of whole words?",o:["Longer text","Handles unseen words with a manageable vocabulary","Removes spaces"],a:1,e:"Subwords can compose any word, even brand-new ones."},
+ {q:"API limits and pricing count…",o:["Letters","Tokens","Sentences"],a:1,e:"Usage is measured in tokens — about ¾ of a word each."}],
+ ref:"Why can a model read a word it has never seen?"},
 
-      {
-        id: "llm", n: "12", t: "From transformer to LLM",
-        idea: `The transformer is the engine. Turning it into the assistant you talk to takes <b>three more stages of learning</b> — then a platform wrapped around the result.`,
-        body: `<div class="step rv"><div class="step-tag">Step 1 · The pipeline</div><h3>Engine to assistant</h3></div>
+{id:"llm",n:"12",t:"From transformer to LLM",
+ idea:`The transformer is the engine. Turning it into the assistant you talk to takes <b>three more stages of learning</b> — then a platform wrapped around the result.`,
+ body:`<div class="step rv"><div class="step-tag">Step 1 · The pipeline</div><h3>Engine to assistant</h3></div>
  <div class="fig rv">${dPipe}<div class="cap"><b>Fig 12.1</b> — Pretrain, fine-tune, align, serve.</div></div>
  <div class="step rv"><div class="step-tag">Step 2 · Three educations</div><h3>What each stage adds</h3>
  <p><b>Pretraining:</b> read a vast slice of the written world, predicting the next word — raw fluency. <b>Fine-tuning:</b> study examples of instructions being followed — helpfulness. <b>Alignment:</b> learn from human preferences which answers people actually want — judgment.</p></div>
  <div class="step rv"><div class="step-tag">Step 3 · The platform</div><h3>Everything you touch</h3>
  <p>The trained model sits behind an API. Around it live the parts you recognize: the chat window, the temperature dial (04), context limits counted in tokens (11), tools, and safety layers. <b>That surrounding stack is the AI platform.</b></p>
  <div class="note"><b>You've arrived.</b> Vectors → dot products → attention → heads → blocks → a model → a trained, aligned, served assistant. Every layer you use daily is made of the pieces in this atlas.</div></div>`,
-        quiz: [{ q: "Which stage builds raw fluency by predicting the next word?", o: ["Serving", "Pretraining", "Alignment"], a: 1, e: "Pretraining on huge text builds the base model." },
-        { q: "Alignment (RLHF) uses…", o: ["Random noise", "Human preferences to steer behavior", "Spelling rules"], a: 1, e: "Human feedback shapes helpful, safe behavior." },
-        { q: "The chat window, temperature dial, and token limits form…", o: ["The engine", "The platform around the model", "Training data"], a: 1, e: "Those product layers are the platform wrapped around the core model." }],
-        ref: "Name the three learning stages and what each adds."
-      }
-    ];
+ quiz:[{q:"Which stage builds raw fluency by predicting the next word?",o:["Serving","Pretraining","Alignment"],a:1,e:"Pretraining on huge text builds the base model."},
+ {q:"Alignment (RLHF) uses…",o:["Random noise","Human preferences to steer behavior","Spelling rules"],a:1,e:"Human feedback shapes helpful, safe behavior."},
+ {q:"The chat window, temperature dial, and token limits form…",o:["The engine","The platform around the model","Training data"],a:1,e:"Those product layers are the platform wrapped around the core model."}],
+ ref:"Name the three learning stages and what each adds."}
+];
 
-    /* ═══════════════ AI reflection check (Google Gemini) ═══════════════ */
-    /* Get a FREE key at https://aistudio.google.com → "Get API key", then paste it below. */
-    
+/* ═══════════════ AI reflection check (via Cloudflare Worker) ═══════════════ */
+const CHECKER_URL = "https://attention-atlas-api.dacharya.workers.dev/";
 
-      async function checkReflection(l){
+async function checkReflection(l){
   const ans=document.getElementById('refIn').value.trim();
   const st=document.getElementById('checkStatus'), fb=document.getElementById('aiFb');
   fb.className='ai-fb'; fb.textContent='';
   if(!ans){ st.textContent='Write your explanation first, then check.'; return; }
   st.textContent='Thinking…';
   try{
-    const r=await fetch('https://attention-atlas-api.dacharya.workers.dev/', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({answer:ans,lesson:{title:l.t,ref:l.ref}})
-    });
+    const r=await fetch(CHECKER_URL,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({answer:ans,lesson:{title:l.t,ref:l.ref}})});
     if(!r.ok) throw new Error('HTTP '+r.status);
     const data=await r.json();
     const txt=(data.feedback||'').trim();
-    if(!txt) throw new Error('empty');
+    if(!txt) throw new Error(data.error||'empty');
     st.textContent='';
     fb.textContent=txt.replace(/^CORRECT:\s*/i,'✓ ').replace(/^NOT QUITE:\s*/i,'→ ');
     fb.className='ai-fb show '+(/^CORRECT:/i.test(txt)?'ok':'redo');
@@ -1682,72 +614,45 @@ ${i < 3 ? `<line x1="${x + 126}" y1="93" x2="${x + 148}" y2="93" stroke="${MUTE}
     st.textContent='Could not reach the AI checker — check your connection and try again.';
   }
 }
-        st.textContent = 'AI check not configured yet (site owner: add a Gemini API key in the code).'; return;
-      }
-      st.textContent = 'Thinking…';
-      const prompt = `You are a kind, encouraging tutor inside an interactive course about transformers (the AI architecture).
-Lesson title: "${l.t}". Reflection prompt: "${l.ref}".
-The learner wrote: "${ans.slice(0, 1200)}"
-Evaluate ONLY whether their explanation shows correct understanding of the concept. Wording differences are fine; judge the idea, not the phrasing.
-Reply in at most 3 short sentences, plain text, no markdown:
-1) Start with exactly "CORRECT:" if the core idea is right (even if imperfect), or "NOT QUITE:" if there is a real misunderstanding.
-2) Then one sentence of specific, encouraging feedback.
-3) If NOT QUITE, add one sentence with a gentle hint toward the right idea (do not just give the full answer).`;
-      try {
-        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-        });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const data = await r.json();
-        const txt = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
-        if (!txt) throw new Error('empty');
-        st.textContent = '';
-        fb.textContent = txt.replace(/^CORRECT:\s*/i, '✓ ').replace(/^NOT QUITE:\s*/i, '→ ');
-        fb.className = 'ai-fb show ' + (/^CORRECT:/i.test(txt) ? 'ok' : 'redo');
-      } catch (e) {
-        st.textContent = 'Could not reach the AI checker — check your connection and try again.';
-      }
-    }
 
-    /* ═══════════════ state ═══════════════ */
-    const KEY = 'atlas-progress';
-    let done = new Set(JSON.parse(localStorage.getItem(KEY) || '[]'));
-    let cur = 0;
-    const save = () => localStorage.setItem(KEY, JSON.stringify([...done]));
+/* ═══════════════ state ═══════════════ */
+const KEY='atlas-progress';
+let done=new Set(JSON.parse(localStorage.getItem(KEY)||'[]'));
+let cur=0;
+const save=()=>localStorage.setItem(KEY,JSON.stringify([...done]));
 
-    /* ═══════════════ rail ═══════════════ */
-    const stackEl = document.getElementById('stack');
-    function drawRail() {
-      stackEl.querySelectorAll('.stk').forEach(e => e.remove());
-      L.forEach((l, i) => {
-        const b = document.createElement('button'); b.className = 'stk' + (i === cur ? ' active' : '') + (done.has(l.id) ? ' done' : '');
-        b.innerHTML = `<span class="n">${l.n}</span><span class="t">${l.t}</span><span class="done-tick">✓</span>`;
-        b.addEventListener('click', () => go(i)); stackEl.appendChild(b);
-      });
-      const pct = Math.round(done.size / L.length * 100);
-      document.getElementById('pPct').textContent = pct + '%';
-      document.getElementById('pFill').style.width = pct + '%';
-      requestAnimationFrame(() => {
-        const act = stackEl.querySelectorAll('.stk')[cur];
-        if (act) document.getElementById('orb').style.top = (act.offsetTop + act.offsetHeight / 2 - 6) + 'px';
-      });
-    }
+/* ═══════════════ rail ═══════════════ */
+const stackEl=document.getElementById('stack');
+function drawRail(){
+  stackEl.querySelectorAll('.stk').forEach(e=>e.remove());
+  L.forEach((l,i)=>{
+    const b=document.createElement('button');b.className='stk'+(i===cur?' active':'')+(done.has(l.id)?' done':'');
+    b.innerHTML=`<span class="n">${l.n}</span><span class="t">${l.t}</span><span class="done-tick">✓</span>`;
+    b.addEventListener('click',()=>go(i));stackEl.appendChild(b);
+  });
+  const pct=Math.round(done.size/L.length*100);
+  document.getElementById('pPct').textContent=pct+'%';
+  document.getElementById('pFill').style.width=pct+'%';
+  requestAnimationFrame(()=>{
+    const act=stackEl.querySelectorAll('.stk')[cur];
+    if(act)document.getElementById('orb').style.top=(act.offsetTop+act.offsetHeight/2-6)+'px';
+  });
+}
 
-    /* ═══════════════ lesson render ═══════════════ */
-    const canvas = document.getElementById('canvas');
-    function drawLesson() {
-      const l = L[cur];
-      canvas.innerHTML = `
+/* ═══════════════ lesson render ═══════════════ */
+const canvas=document.getElementById('canvas');
+function drawLesson(){
+  const l=L[cur];
+  canvas.innerHTML=`
    <div class="les-kick rv in">Lesson ${l.n} of 12 — the stack, level by level</div>
-   <h2 class="les-title rv in">${l.t.replace('&', '&amp;')}</h2>
+   <h2 class="les-title rv in">${l.t.replace('&','&amp;')}</h2>
    <div class="idea rv in">${l.idea}</div>
    ${l.body}
-   ${l.tool ? `<div class="inst rv"><div class="inst-head"><span class="inst-lamp"></span><h4>Instrument</h4></div>
-     <div class="inst-sub">A live piece of the machine. Touch it.</div><div id="tmount"></div></div>`: ''}
+   ${l.tool?`<div class="inst rv"><div class="inst-head"><span class="inst-lamp"></span><h4>Instrument</h4></div>
+     <div class="inst-sub">A live piece of the machine. Touch it.</div><div id="tmount"></div></div>`:''}
    <div class="quiz rv"><div class="quiz-kick">Check yourself</div>
-    ${l.quiz.map((q, qi) => `<div class="q" data-qi="${qi}"><div class="qt">${qi + 1}. ${q.q}</div>
-     ${q.o.map((o, oi) => `<button class="opt" data-oi="${oi}">${o}</button>`).join('')}
+    ${l.quiz.map((q,qi)=>`<div class="q" data-qi="${qi}"><div class="qt">${qi+1}. ${q.q}</div>
+     ${q.o.map((o,oi)=>`<button class="opt" data-oi="${oi}">${o}</button>`).join('')}
      <div class="explain">${q.e}</div></div>`).join('')}</div>
    <div class="reflect rv"><h4>Say it in your own words</h4><div class="hint">${l.ref}</div>
     <textarea id="refIn" placeholder="The truest test of understanding is being able to explain it yourself…"></textarea>
@@ -1756,64 +661,58 @@ Reply in at most 3 short sentences, plain text, no markdown:
       <span class="check-status" id="checkStatus"></span>
     </div>
     <div class="ai-fb" id="aiFb"></div>
-    <div><button class="done-btn ${done.has(l.id) ? 'is-done' : ''}" id="doneBtn">
-      ${done.has(l.id) ? '✓ Completed' : 'Mark lesson complete'}</button></div></div>
+    <div><button class="done-btn ${done.has(l.id)?'is-done':''}" id="doneBtn">
+      ${done.has(l.id)?'✓ Completed':'Mark lesson complete'}</button></div></div>
    <div class="lnav">
-    <button ${cur === 0 ? 'disabled' : ''} id="pv"><span class="dir">← previous</span><span class="lt">${cur > 0 ? L[cur - 1].t : '—'}</span></button>
-    <button class="nx" ${cur === L.length - 1 ? 'disabled' : ''} id="nx"><span class="dir">next →</span><span class="lt">${cur < L.length - 1 ? L[cur + 1].t : 'The end — you built the whole picture'}</span></button>
+    <button ${cur===0?'disabled':''} id="pv"><span class="dir">← previous</span><span class="lt">${cur>0?L[cur-1].t:'—'}</span></button>
+    <button class="nx" ${cur===L.length-1?'disabled':''} id="nx"><span class="dir">next →</span><span class="lt">${cur<L.length-1?L[cur+1].t:'The end — you built the whole picture'}</span></button>
    </div>`;
-      // quiz wiring
-      canvas.querySelectorAll('.q').forEach(qd => {
-        const correct = l.quiz[+qd.dataset.qi].a;
-        qd.querySelectorAll('.opt').forEach(btn => btn.addEventListener('click', () => {
-          qd.querySelectorAll('.opt').forEach(b => { b.disabled = true; if (+b.dataset.oi === correct) b.classList.add('correct'); });
-          if (+btn.dataset.oi !== correct) btn.classList.add('wrong');
-          qd.querySelector('.explain').classList.add('show');
-        }));
-      });
-      document.getElementById('doneBtn').addEventListener('click', () => { done.add(l.id); save(); drawRail(); drawLesson(); });
-      document.getElementById('checkBtn').addEventListener('click', () => checkReflection(l));
-      document.getElementById('pv')?.addEventListener('click', () => go(cur - 1));
-      document.getElementById('nx')?.addEventListener('click', () => go(cur + 1));
-      if (l.tool) TOOLS[l.tool](document.getElementById('tmount'));
-      // reveals
-      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } }), { threshold: .1 });
-      canvas.querySelectorAll('.rv').forEach(el => io.observe(el));
-    }
-    function go(i) {
-      if (i < 0 || i >= L.length) return; cur = i; drawRail(); drawLesson();
-      document.getElementById('rail').classList.remove('open');
-      document.getElementById('course').scrollIntoView({ behavior: 'smooth' });
-    }
+  // quiz wiring
+  canvas.querySelectorAll('.q').forEach(qd=>{
+    const correct=l.quiz[+qd.dataset.qi].a;
+    qd.querySelectorAll('.opt').forEach(btn=>btn.addEventListener('click',()=>{
+      qd.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(+b.dataset.oi===correct)b.classList.add('correct');});
+      if(+btn.dataset.oi!==correct)btn.classList.add('wrong');
+      qd.querySelector('.explain').classList.add('show');
+    }));
+  });
+  document.getElementById('doneBtn').addEventListener('click',()=>{done.add(l.id);save();drawRail();drawLesson();});
+  document.getElementById('checkBtn').addEventListener('click',()=>checkReflection(l));
+  document.getElementById('pv')?.addEventListener('click',()=>go(cur-1));
+  document.getElementById('nx')?.addEventListener('click',()=>go(cur+1));
+  if(l.tool)TOOLS[l.tool](document.getElementById('tmount'));
+  // reveals
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
+  canvas.querySelectorAll('.rv').forEach(el=>io.observe(el));
+}
+function go(i){if(i<0||i>=L.length)return;cur=i;drawRail();drawLesson();
+  document.getElementById('rail').classList.remove('open');
+  document.getElementById('course').scrollIntoView({behavior:'smooth'});}
 
-    /* ═══════════════ instruments ═══════════════ */
-    const TOOLS = {};
-    TOOLS.vec = el => {
-      el.innerHTML = `<svg viewBox="0 0 380 300" style="width:100%;max-width:380px;display:block;margin:auto" id="vp">
+/* ═══════════════ instruments ═══════════════ */
+const TOOLS={};
+TOOLS.vec=el=>{
+  el.innerHTML=`<svg viewBox="0 0 380 300" style="width:100%;max-width:380px;display:block;margin:auto" id="vp">
    <line x1="30" y1="270" x2="360" y2="270" stroke="#2B3168"/><line x1="30" y1="24" x2="30" y2="270" stroke="#2B3168"/>
    <line id="vl" x1="30" y1="270" x2="210" y2="110" stroke="#7DE1FF" stroke-width="3"/>
    <circle id="vpt" cx="210" cy="110" r="11" fill="#FFD166" style="cursor:grab;filter:drop-shadow(0 0 8px #FFD166)"/></svg>
    <div class="readout"><div class="r"><span>vector</span><b id="vv">[1.8, 1.6]</b></div>
    <div class="r"><span>length</span><b id="vm">2.41</b></div></div>`;
-      const svg = el.querySelector('#vp'), pt = el.querySelector('#vpt'), ln = el.querySelector('#vl');
-      const ox = 30, oy = 270, sc = 95; let drag = false;
-      const xy = e => {
-        const r = svg.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e;
-        return [(t.clientX - r.left) / r.width * 380, (t.clientY - r.top) / r.height * 300]
-      };
-      function set(x, y) {
-        x = Math.max(30, Math.min(360, x)); y = Math.max(24, Math.min(270, y));
-        pt.setAttribute('cx', x); pt.setAttribute('cy', y); ln.setAttribute('x2', x); ln.setAttribute('y2', y);
-        const vx = (x - ox) / sc, vy = (oy - y) / sc;
-        el.querySelector('#vv').textContent = `[${vx.toFixed(1)}, ${vy.toFixed(1)}]`;
-        el.querySelector('#vm').textContent = Math.hypot(vx, vy).toFixed(2);
-      }
-      pt.addEventListener('pointerdown', () => drag = true);
-      addEventListener('pointermove', e => { if (!drag) return; e.preventDefault(); const [x, y] = xy(e); set(x, y) });
-      addEventListener('pointerup', () => drag = false); set(210, 110);
-    };
-    TOOLS.dot = el => {
-      el.innerHTML = `<svg viewBox="0 0 380 300" style="width:100%;max-width:380px;display:block;margin:auto" id="dp">
+  const svg=el.querySelector('#vp'),pt=el.querySelector('#vpt'),ln=el.querySelector('#vl');
+  const ox=30,oy=270,sc=95;let drag=false;
+  const xy=e=>{const r=svg.getBoundingClientRect();const t=e.touches?e.touches[0]:e;
+    return[(t.clientX-r.left)/r.width*380,(t.clientY-r.top)/r.height*300]};
+  function set(x,y){x=Math.max(30,Math.min(360,x));y=Math.max(24,Math.min(270,y));
+    pt.setAttribute('cx',x);pt.setAttribute('cy',y);ln.setAttribute('x2',x);ln.setAttribute('y2',y);
+    const vx=(x-ox)/sc,vy=(oy-y)/sc;
+    el.querySelector('#vv').textContent=`[${vx.toFixed(1)}, ${vy.toFixed(1)}]`;
+    el.querySelector('#vm').textContent=Math.hypot(vx,vy).toFixed(2);}
+  pt.addEventListener('pointerdown',()=>drag=true);
+  addEventListener('pointermove',e=>{if(!drag)return;e.preventDefault();const[x,y]=xy(e);set(x,y)});
+  addEventListener('pointerup',()=>drag=false);set(210,110);
+};
+TOOLS.dot=el=>{
+  el.innerHTML=`<svg viewBox="0 0 380 300" style="width:100%;max-width:380px;display:block;margin:auto" id="dp">
    <line x1="190" y1="16" x2="190" y2="284" stroke="#2B3168"/><line x1="40" y1="150" x2="340" y2="150" stroke="#2B3168"/>
    <line id="l1" x1="190" y1="150" x2="300" y2="66" stroke="#7DE1FF" stroke-width="3"/>
    <circle id="c1" cx="300" cy="66" r="11" fill="#7DE1FF" style="cursor:grab;filter:drop-shadow(0 0 8px #7DE1FF)"/>
@@ -1821,179 +720,144 @@ Reply in at most 3 short sentences, plain text, no markdown:
    <circle id="c2" cx="262" cy="232" r="11" fill="#FF9EC4" style="cursor:grab;filter:drop-shadow(0 0 8px #FF9EC4)"/></svg>
    <div class="readout"><div class="r"><span>dot product</span><b id="dv">—</b></div>
    <div class="r"><span>verdict</span><b id="dm" style="font-size:15px">—</b></div></div>`;
-      const svg = el.querySelector('#dp'); const ox = 190, oy = 150, sc = 88; const P = { c1: [300, 66], c2: [262, 232] }; let curp = null;
-      const xy = e => {
-        const r = svg.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e;
-        return [(t.clientX - r.left) / r.width * 380, (t.clientY - r.top) / r.height * 300]
-      };
-      function upd() {
-        const v1 = [(P.c1[0] - ox) / sc, (oy - P.c1[1]) / sc], v2 = [(P.c2[0] - ox) / sc, (oy - P.c2[1]) / sc];
-        const d = v1[0] * v2[0] + v1[1] * v2[1]; el.querySelector('#dv').textContent = d.toFixed(2);
-        const m = el.querySelector('#dm');
-        if (d > 0.4) { m.textContent = 'similar ↗'; m.style.color = '#7DE1FF' }
-        else if (d < -0.4) { m.textContent = 'opposite ↙'; m.style.color = '#FF9EC4' }
-        else { m.textContent = 'unrelated'; m.style.color = '#8B93C4' }
-      }
-      function place(id) {
-        const [x, y] = P[id]; el.querySelector('#' + id).setAttribute('cx', x);
-        el.querySelector('#' + id).setAttribute('cy', y);
-        const l = el.querySelector(id === 'c1' ? '#l1' : '#l2'); l.setAttribute('x2', x); l.setAttribute('y2', y)
-      }
-      ['c1', 'c2'].forEach(id => el.querySelector('#' + id).addEventListener('pointerdown', () => curp = id));
-      addEventListener('pointermove', e => {
-        if (!curp) return; e.preventDefault(); let [x, y] = xy(e);
-        x = Math.max(16, Math.min(364, x)); y = Math.max(16, Math.min(284, y)); P[curp] = [x, y]; place(curp); upd()
-      });
-      addEventListener('pointerup', () => curp = null); place('c1'); place('c2'); upd();
-    };
-    TOOLS.soft = el => {
-      const lg = [3.2, 1.1, 2.4, 0.6, 1.8], lb = ["mat", "the", "runs", "of", "fast"];
-      el.innerHTML = `<div class="srow"><label>temperature</label>
+  const svg=el.querySelector('#dp');const ox=190,oy=150,sc=88;const P={c1:[300,66],c2:[262,232]};let curp=null;
+  const xy=e=>{const r=svg.getBoundingClientRect();const t=e.touches?e.touches[0]:e;
+    return[(t.clientX-r.left)/r.width*380,(t.clientY-r.top)/r.height*300]};
+  function upd(){const v1=[(P.c1[0]-ox)/sc,(oy-P.c1[1])/sc],v2=[(P.c2[0]-ox)/sc,(oy-P.c2[1])/sc];
+    const d=v1[0]*v2[0]+v1[1]*v2[1];el.querySelector('#dv').textContent=d.toFixed(2);
+    const m=el.querySelector('#dm');
+    if(d>0.4){m.textContent='similar ↗';m.style.color='#7DE1FF'}
+    else if(d<-0.4){m.textContent='opposite ↙';m.style.color='#FF9EC4'}
+    else{m.textContent='unrelated';m.style.color='#8B93C4'}}
+  function place(id){const[x,y]=P[id];el.querySelector('#'+id).setAttribute('cx',x);
+    el.querySelector('#'+id).setAttribute('cy',y);
+    const l=el.querySelector(id==='c1'?'#l1':'#l2');l.setAttribute('x2',x);l.setAttribute('y2',y)}
+  ['c1','c2'].forEach(id=>el.querySelector('#'+id).addEventListener('pointerdown',()=>curp=id));
+  addEventListener('pointermove',e=>{if(!curp)return;e.preventDefault();let[x,y]=xy(e);
+    x=Math.max(16,Math.min(364,x));y=Math.max(16,Math.min(284,y));P[curp]=[x,y];place(curp);upd()});
+  addEventListener('pointerup',()=>curp=null);place('c1');place('c2');upd();
+};
+TOOLS.soft=el=>{
+  const lg=[3.2,1.1,2.4,0.6,1.8],lb=["mat","the","runs","of","fast"];
+  el.innerHTML=`<div class="srow"><label>temperature</label>
    <input type="range" min="0.1" max="3" step="0.05" value="1" id="tp"><span class="sval" id="tv">1.00</span></div>
-   <div class="ibars">${lb.map((x, i) => `<div class="ibw"><span class="ibv" id="v${i}"></span>
+   <div class="ibars">${lb.map((x,i)=>`<div class="ibw"><span class="ibv" id="v${i}"></span>
    <div class="ib" id="b${i}"></div><span class="ibl">${x}</span></div>`).join('')}</div>`;
-      const t = el.querySelector('#tp');
-      function d() {
-        const T = +t.value; el.querySelector('#tv').textContent = T.toFixed(2);
-        const s = lg.map(x => Math.exp(x / T)); const S = s.reduce((a, b) => a + b); const p = s.map(x => x / S); const M = Math.max(...p);
-        p.forEach((v, i) => {
-          el.querySelector('#b' + i).style.height = (v / M * 100) + '%';
-          el.querySelector('#v' + i).textContent = (v * 100).toFixed(0) + '%'
-        })
-      }
-      t.addEventListener('input', d); d();
-    };
-    TOOLS.attn = el => {
-      const w = ["The", "robot", "picked", "up", "the", "red", "ball"];
-      const A = {
-        0: [.15, .1, .1, 0, .1, 0, .1], 1: [.3, .15, .7, .1, .05, .1, .5], 2: [.1, .6, .15, .4, .2, .1, .7],
-        3: [0, .1, .5, .15, .1, 0, .3], 4: [.4, .05, .1, 0, .15, .4, .5], 5: [0, .05, .05, 0, .3, .15, .8], 6: [.1, .5, .6, .1, .4, .7, .15]
-      };
-      el.innerHTML = `<div class="itoks">${w.map((x, i) => `<span class="itok" data-i="${i}">${x}</span>`).join('')}</div><div id="ar"></div>`;
-      function d(s) {
-        const raw = A[s].slice(); const S = raw.reduce((a, b) => a + b); const p = raw.map(x => x / S);
-        el.querySelector('#ar').innerHTML = w.map((x, i) => `<div class="aline">
-     <span class="w">${x}${i === s ? ' ·' : ''}</span><div class="abar" style="width:${p[i] * 68}%"></div>
-     <span class="p" style="color:${i === s ? '#FFD166' : '#EDF0FF'}">${(p[i] * 100).toFixed(0)}%</span></div>`).join('');
-        el.querySelectorAll('.itok').forEach((t, i) => t.classList.toggle('sel', i === s))
-      }
-      el.querySelectorAll('.itok').forEach(t => t.addEventListener('click', () => d(+t.dataset.i))); d(6);
-    };
-    TOOLS.pos = el => {
-      el.innerHTML = `<div class="srow"><label>position</label>
+  const t=el.querySelector('#tp');
+  function d(){const T=+t.value;el.querySelector('#tv').textContent=T.toFixed(2);
+    const s=lg.map(x=>Math.exp(x/T));const S=s.reduce((a,b)=>a+b);const p=s.map(x=>x/S);const M=Math.max(...p);
+    p.forEach((v,i)=>{el.querySelector('#b'+i).style.height=(v/M*100)+'%';
+      el.querySelector('#v'+i).textContent=(v*100).toFixed(0)+'%'})}
+  t.addEventListener('input',d);d();
+};
+TOOLS.attn=el=>{
+  const w=["The","robot","picked","up","the","red","ball"];
+  const A={0:[.15,.1,.1,0,.1,0,.1],1:[.3,.15,.7,.1,.05,.1,.5],2:[.1,.6,.15,.4,.2,.1,.7],
+   3:[0,.1,.5,.15,.1,0,.3],4:[.4,.05,.1,0,.15,.4,.5],5:[0,.05,.05,0,.3,.15,.8],6:[.1,.5,.6,.1,.4,.7,.15]};
+  el.innerHTML=`<div class="itoks">${w.map((x,i)=>`<span class="itok" data-i="${i}">${x}</span>`).join('')}</div><div id="ar"></div>`;
+  function d(s){const raw=A[s].slice();const S=raw.reduce((a,b)=>a+b);const p=raw.map(x=>x/S);
+    el.querySelector('#ar').innerHTML=w.map((x,i)=>`<div class="aline">
+     <span class="w">${x}${i===s?' ·':''}</span><div class="abar" style="width:${p[i]*68}%"></div>
+     <span class="p" style="color:${i===s?'#FFD166':'#EDF0FF'}">${(p[i]*100).toFixed(0)}%</span></div>`).join('');
+    el.querySelectorAll('.itok').forEach((t,i)=>t.classList.toggle('sel',i===s))}
+  el.querySelectorAll('.itok').forEach(t=>t.addEventListener('click',()=>d(+t.dataset.i)));d(6);
+};
+TOOLS.pos=el=>{
+  el.innerHTML=`<div class="srow"><label>position</label>
    <input type="range" min="0" max="15" step="1" value="3" id="ps"><span class="sval" id="pv">3</span></div>
    <svg viewBox="0 0 480 72" style="width:100%" id="pe"></svg>
    <div class="inst-sub" style="margin:10px 0 0">every seat gets its own striped fingerprint</div>`;
-      const p = el.querySelector('#ps');
-      function d() {
-        const P = +p.value; el.querySelector('#pv').textContent = P; let c = '';
-        for (let i = 0; i < 24; i++) {
-          const f = 1 / Math.pow(10000, i / 24); const v = Math.sin(P * f * 3 + i * .3); const g = Math.round((v + 1) / 2 * 255);
-          c += `<rect x="${i * 20}" y="8" width="19" height="56" rx="4" fill="rgb(${Math.round(g * .5 + 60)},${Math.round(g * .7 + 70)},${255 - Math.round(g * .3)})"/>`
-        }
-        el.querySelector('#pe').innerHTML = c
-      }
-      p.addEventListener('input', d); d();
-    };
-    TOOLS.grad = el => {
-      el.innerHTML = `<div class="srow"><label>learning rate</label>
+  const p=el.querySelector('#ps');
+  function d(){const P=+p.value;el.querySelector('#pv').textContent=P;let c='';
+    for(let i=0;i<24;i++){const f=1/Math.pow(10000,i/24);const v=Math.sin(P*f*3+i*.3);const g=Math.round((v+1)/2*255);
+      c+=`<rect x="${i*20}" y="8" width="19" height="56" rx="4" fill="rgb(${Math.round(g*.5+60)},${Math.round(g*.7+70)},${255-Math.round(g*.3)})"/>`}
+    el.querySelector('#pe').innerHTML=c}
+  p.addEventListener('input',d);d();
+};
+TOOLS.grad=el=>{
+  el.innerHTML=`<div class="srow"><label>learning rate</label>
    <input type="range" min="0.02" max="1.1" step="0.02" value="0.3" id="lr"><span class="sval" id="lv">0.30</span></div>
    <svg viewBox="0 0 420 220" style="width:100%" id="gd"></svg>
    <div style="display:flex;gap:12px;margin-top:14px"><button class="ibtn" id="st">take a step ▶</button>
    <button class="ibtn" id="rs">reset</button></div>`;
-      const svg = el.querySelector('#gd'), lr = el.querySelector('#lr'); let x = -0.6;
-      const px = x => 40 + (x + 1) / 6 * 340, loss = x => .55 * (x - 2) * (x - 2), py = L => 198 - L * 36;
-      const curve = () => { let d = ''; for (let i = 0; i <= 60; i++) { const xx = -1 + i / 60 * 6; d += (i ? 'L' : 'M') + px(xx) + ' ' + py(loss(xx)) + ' ' } return d };
-      function d() {
-        el.querySelector('#lv').textContent = (+lr.value).toFixed(2);
-        svg.innerHTML = `<path d="${curve()}" fill="none" stroke="#2B3168" stroke-width="2"/>
+  const svg=el.querySelector('#gd'),lr=el.querySelector('#lr');let x=-0.6;
+  const px=x=>40+(x+1)/6*340,loss=x=>.55*(x-2)*(x-2),py=L=>198-L*36;
+  const curve=()=>{let d='';for(let i=0;i<=60;i++){const xx=-1+i/60*6;d+=(i?'L':'M')+px(xx)+' '+py(loss(xx))+' '}return d};
+  function d(){el.querySelector('#lv').textContent=(+lr.value).toFixed(2);
+    svg.innerHTML=`<path d="${curve()}" fill="none" stroke="#2B3168" stroke-width="2"/>
      <circle cx="${px(2)}" cy="${py(0)}" r="5" fill="#7DE1FF"/>
-     <text x="${px(2)}" y="${py(0) + 20}" fill="#7DE1FF" font-size="10" text-anchor="middle" font-family="IBM Plex Mono">target</text>
-     <circle cx="${px(x)}" cy="${py(loss(x)) - 9}" r="10" fill="#FFD166" style="filter:drop-shadow(0 0 8px #FFD166)"/>`
-      }
-      el.querySelector('#st').addEventListener('click', () => { x -= (+lr.value) * 2 * .55 * (x - 2); x = Math.max(-1.4, Math.min(5.4, x)); d() });
-      el.querySelector('#rs').addEventListener('click', () => { x = -0.6; d() });
-      lr.addEventListener('input', d); d();
-    };
-    TOOLS.tokz = el => {
-      el.innerHTML = `<input class="itxt" id="tx" value="unbelievable transformers" autocomplete="off">
+     <text x="${px(2)}" y="${py(0)+20}" fill="#7DE1FF" font-size="10" text-anchor="middle" font-family="IBM Plex Mono">target</text>
+     <circle cx="${px(x)}" cy="${py(loss(x))-9}" r="10" fill="#FFD166" style="filter:drop-shadow(0 0 8px #FFD166)"/>`}
+  el.querySelector('#st').addEventListener('click',()=>{x-=(+lr.value)*2*.55*(x-2);x=Math.max(-1.4,Math.min(5.4,x));d()});
+  el.querySelector('#rs').addEventListener('click',()=>{x=-0.6;d()});
+  lr.addEventListener('input',d);d();
+};
+TOOLS.tokz=el=>{
+  el.innerHTML=`<input class="itxt" id="tx" value="unbelievable transformers" autocomplete="off">
    <div class="itoks" id="tk" style="margin-top:16px"></div>`;
-      const tx = el.querySelector('#tx');
-      const pieces = ["un", "re", "in", "pre", "able", "ing", "ed", "ly", "er", "transform", "form", "believ", "port", "struct", "s", "ent"];
-      const cols = ['#7DE1FF', '#FFD166', '#FF9EC4', '#8AF5C2', '#C4B5FF'];
-      const split = w => {
-        let o = [], i = 0, g = 0; while (i < w.length && g++ < 40) {
-          let m = null;
-          for (const p of pieces) if (w.startsWith(p, i) && (!m || p.length > m.length)) m = p;
-          if (m) { o.push(m); i += m.length } else { o.push(w[i]); i++ }
-        } return o
-      };
-      function d() {
-        const ws = tx.value.toLowerCase().split(/\s+/).filter(Boolean); let t = []; ws.forEach(w => t.push(...split(w)));
-        el.querySelector('#tk').innerHTML = t.map((x, i) => `<span class="itok" style="border-color:${cols[i % 5]};color:${cols[i % 5]};cursor:default">
-     ${x} <span style="opacity:.6;font-size:10px">${1000 + ((x.charCodeAt(0) * 31 + x.length * 7) % 8999)}</span></span>`).join('')
-          + `<div class="inst-sub" style="width:100%;margin-top:12px">${t.length} tokens — pieces colored, IDs pretend</div>`
-      }
-      tx.addEventListener('input', d); d();
-    };
+  const tx=el.querySelector('#tx');
+  const pieces=["un","re","in","pre","able","ing","ed","ly","er","transform","form","believ","port","struct","s","ent"];
+  const cols=['#7DE1FF','#FFD166','#FF9EC4','#8AF5C2','#C4B5FF'];
+  const split=w=>{let o=[],i=0,g=0;while(i<w.length&&g++<40){let m=null;
+    for(const p of pieces)if(w.startsWith(p,i)&&(!m||p.length>m.length))m=p;
+    if(m){o.push(m);i+=m.length}else{o.push(w[i]);i++}}return o};
+  function d(){const ws=tx.value.toLowerCase().split(/\s+/).filter(Boolean);let t=[];ws.forEach(w=>t.push(...split(w)));
+    el.querySelector('#tk').innerHTML=t.map((x,i)=>`<span class="itok" style="border-color:${cols[i%5]};color:${cols[i%5]};cursor:default">
+     ${x} <span style="opacity:.6;font-size:10px">${1000+((x.charCodeAt(0)*31+x.length*7)%8999)}</span></span>`).join('')
+     +`<div class="inst-sub" style="width:100%;margin-top:12px">${t.length} tokens — pieces colored, IDs pretend</div>`}
+  tx.addEventListener('input',d);d();
+};
 
-    /* ═══════════════ hero: name tokenizer ═══════════════ */
-    const heroCols = ['#2B3CF0', '#E8442E', '#C98F0A', '#1B8A5A', '#7A3CF0'];
-    const hpieces = ["deep", "son", "an", "na", "ar", "ya", "son", "er", "ing", "sh", "ch", "th", "ee", "oo", "ra", "ka", "ma", "ta", "la", "sa"];
-    function hsplit(w) {
-      let o = [], i = 0, g = 0; while (i < w.length && g++ < 30) {
-        let m = null;
-        for (const p of hpieces) if (w.startsWith(p, i) && (!m || p.length > m.length)) m = p;
-        if (m) { o.push(m); i += m.length } else { o.push(w[i]); i++ }
-      } return o
-    }
-    const nameIn = document.getElementById('nameIn'), nameToks = document.getElementById('nameToks');
-    function drawName() {
-      const ws = nameIn.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
-      let t = []; ws.forEach(w => t.push(...hsplit(w)));
-      nameToks.innerHTML = t.slice(0, 14).map((x, i) =>
-        `<span class="tchip" style="background:${heroCols[i % 5]};animation-delay:${i * 0.05}s">${x}<small>#${1000 + ((x.charCodeAt(0) * 37 + x.length * 11) % 8999)}</small></span>`).join('');
-    }
-    nameIn.addEventListener('input', drawName);
-    nameIn.value = 'deepson'; drawName();
+/* ═══════════════ hero: name tokenizer ═══════════════ */
+const heroCols=['#2B3CF0','#E8442E','#C98F0A','#1B8A5A','#7A3CF0'];
+const hpieces=["deep","son","an","na","ar","ya","son","er","ing","sh","ch","th","ee","oo","ra","ka","ma","ta","la","sa"];
+function hsplit(w){let o=[],i=0,g=0;while(i<w.length&&g++<30){let m=null;
+  for(const p of hpieces)if(w.startsWith(p,i)&&(!m||p.length>m.length))m=p;
+  if(m){o.push(m);i+=m.length}else{o.push(w[i]);i++}}return o}
+const nameIn=document.getElementById('nameIn'),nameToks=document.getElementById('nameToks');
+function drawName(){
+  const ws=nameIn.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  let t=[];ws.forEach(w=>t.push(...hsplit(w)));
+  nameToks.innerHTML=t.slice(0,14).map((x,i)=>
+   `<span class="tchip" style="background:${heroCols[i%5]};animation-delay:${i*0.05}s">${x}<small>#${1000+((x.charCodeAt(0)*37+x.length*11)%8999)}</small></span>`).join('');
+}
+nameIn.addEventListener('input',drawName);
+nameIn.value='deepson';drawName();
 
-    /* ═══════════════ hero attention arcs ═══════════════ */
-    const arcs = document.getElementById('arcs');
-    function drawArcs() {
-      const wrap = arcs.parentElement; const ws = [...wrap.querySelectorAll('h1 .w')];
-      if (!ws.length) return;
-      const wr = wrap.getBoundingClientRect();
-      arcs.setAttribute('viewBox', `0 0 ${wr.width + 80} ${wr.height + 120}`);
-      const pts = ws.map(w => {
-        const r = w.getBoundingClientRect();
-        return { x: r.left - wr.left + 40 + r.width / 2, y: r.top - wr.top + 70 }
-      });
-      const pairs = [[0, 2], [1, 4], [2, 4], [0, 4], [1, 2]];
-      const cols = ['#2B3CF0', '#E8442E', '#C98F0A', '#2B3CF0', '#E8442E'];
-      arcs.innerHTML = pairs.map((p, i) => {
-        const a = pts[p[0]], b = pts[p[1]]; if (!a || !b) return '';
-        const lift = 40 + Math.abs(p[1] - p[0]) * 26;
-        return `<path d="M${a.x} ${a.y} Q${(a.x + b.x) / 2} ${Math.min(a.y, b.y) - lift} ${b.x} ${b.y}"
+/* ═══════════════ hero attention arcs ═══════════════ */
+const arcs=document.getElementById('arcs');
+function drawArcs(){
+  const wrap=arcs.parentElement;const ws=[...wrap.querySelectorAll('h1 .w')];
+  if(!ws.length)return;
+  const wr=wrap.getBoundingClientRect();
+  arcs.setAttribute('viewBox',`0 0 ${wr.width+80} ${wr.height+120}`);
+  const pts=ws.map(w=>{const r=w.getBoundingClientRect();
+    return{x:r.left-wr.left+40+r.width/2,y:r.top-wr.top+70}});
+  const pairs=[[0,2],[1,4],[2,4],[0,4],[1,2]];
+  const cols=['#2B3CF0','#E8442E','#C98F0A','#2B3CF0','#E8442E'];
+  arcs.innerHTML=pairs.map((p,i)=>{
+    const a=pts[p[0]],b=pts[p[1]];if(!a||!b)return'';
+    const lift=40+Math.abs(p[1]-p[0])*26;
+    return`<path d="M${a.x} ${a.y} Q${(a.x+b.x)/2} ${Math.min(a.y,b.y)-lift} ${b.x} ${b.y}"
      fill="none" stroke="${cols[i]}" stroke-width="1.6" opacity=".5"
      stroke-dasharray="1000" stroke-dashoffset="1000">
-     <animate attributeName="stroke-dashoffset" from="1000" to="0" dur="1.6s" begin="${.9 + i * .22}s" fill="freeze"/>
+     <animate attributeName="stroke-dashoffset" from="1000" to="0" dur="1.6s" begin="${.9+i*.22}s" fill="freeze"/>
      </path>
      <circle r="3.5" fill="${cols[i]}" opacity="0">
-      <animate attributeName="opacity" values="0;.9;0" dur="3.2s" begin="${2.6 + i * .5}s" repeatCount="indefinite"/>
-      <animateMotion dur="3.2s" begin="${2.6 + i * .5}s" repeatCount="indefinite"
-       path="M${a.x} ${a.y} Q${(a.x + b.x) / 2} ${Math.min(a.y, b.y) - lift} ${b.x} ${b.y}"/></circle>`;
-      }).join('');
-    }
-    if (!matchMedia('(prefers-reduced-motion:reduce)').matches) {
-      addEventListener('load', () => setTimeout(drawArcs, 150));
-      addEventListener('resize', () => drawArcs());
-    } else { addEventListener('load', () => setTimeout(drawArcs, 100)); }
+      <animate attributeName="opacity" values="0;.9;0" dur="3.2s" begin="${2.6+i*.5}s" repeatCount="indefinite"/>
+      <animateMotion dur="3.2s" begin="${2.6+i*.5}s" repeatCount="indefinite"
+       path="M${a.x} ${a.y} Q${(a.x+b.x)/2} ${Math.min(a.y,b.y)-lift} ${b.x} ${b.y}"/></circle>`;
+  }).join('');
+}
+if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
+  addEventListener('load',()=>setTimeout(drawArcs,150));
+  addEventListener('resize',()=>drawArcs());
+}else{addEventListener('load',()=>setTimeout(drawArcs,100));}
 
-    /* ═══════════════ boot ═══════════════ */
-    document.getElementById('mtoggle').addEventListener('click', () =>
-      document.getElementById('rail').classList.toggle('open'));
-    drawRail(); drawLesson();
-  </script>
+/* ═══════════════ boot ═══════════════ */
+document.getElementById('mtoggle').addEventListener('click',()=>
+  document.getElementById('rail').classList.toggle('open'));
+drawRail();drawLesson();
+</script>
 </body>
-
 </html>
