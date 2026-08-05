@@ -1659,11 +1659,6 @@ ${i < 3 ? `<line x1="${x + 126}" y1="93" x2="${x + 148}" y2="93" stroke="${MUTE}
     /* Get a FREE key at https://aistudio.google.com → "Get API key", then paste it below. */
     
 
-    async function checkReflection(l) {
-      const ans = document.getElementById('refIn').value.trim();
-      const st = document.getElementById('checkStatus'), fb = document.getElementById('aiFb');
-      fb.className = 'ai-fb'; fb.textContent = '';
-      if (!ans) { st.textContent = 'Write your explanation first, then check.'; return; }
       async function checkReflection(l){
   const ans=document.getElementById('refIn').value.trim();
   const st=document.getElementById('checkStatus'), fb=document.getElementById('aiFb');
