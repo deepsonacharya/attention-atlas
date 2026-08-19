@@ -1,5 +1,9 @@
 # Attention Atlas
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22005900.svg)](https://doi.org/10.5281/zenodo.22005900)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Live site](https://img.shields.io/badge/live-attention--atlas-blue)](https://deepsonacharya.github.io/attention-atlas/)
+
 **An interactive course on how transformers work.**
 
 [**→ Open the course**](https://deepsonacharya.github.io/attention-atlas/) · 13 lessons · 7 live instruments · MIT licensed
