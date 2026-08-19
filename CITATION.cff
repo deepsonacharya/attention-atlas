@@ -1,14 +1,20 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "Attention Atlas: An Interactive Course on How Transformers Work"
-abstract: "A free, open-source interactive atlas teaching how transformers and large language models work, from vectors and dot products through attention and multi-head mechanisms to full models and LLM pipelines. Thirteen lessons with seven live instruments."
+abstract: >-
+  A free, open-source interactive atlas teaching how transformers and
+  large language models work, from vectors and dot products through
+  attention and multi-head mechanisms to full models and LLM pipelines.
+  Thirteen lessons with seven live instruments.
+type: software
 authors:
-  - family-names: "Acharya"
-    given-names: "Deepson"
+  - family-names: Acharya
+    given-names: Deepson
     affiliation: "Caldwell University"
-version: "1.0.0"
-date-released: "2026-08-17"
+version: 1.0.0
+date-released: 2026-08-19
 license: MIT
+doi: 10.5281/zenodo.22005900
 repository-code: "https://github.com/deepsonacharya/attention-atlas"
 url: "https://deepsonacharya.github.io/attention-atlas/"
 keywords:
@@ -17,4 +23,3 @@ keywords:
   - large language models
   - machine learning education
   - interactive learning
-type: software
