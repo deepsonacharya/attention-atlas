@@ -11,6 +11,7 @@ authors:
   - family-names: Acharya
     given-names: Deepson
     affiliation: "Caldwell University"
+    orcid: "https://orcid.org/0009-0000-4403-0787"
 version: 1.0.0
 date-released: 2026-08-19
 license: MIT
